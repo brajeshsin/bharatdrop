@@ -1,0 +1,115 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #e8f5e9;
+  --color-primary-100: #c8e6c9;
+  --color-primary-200: #a5d6a7;
+  --color-primary-300: #81c784;
+  --color-primary-400: #66bb6a;
+  --color-primary-500: #4caf50;
+  --color-primary-600: #43a047;
+  --color-primary-700: #388e3c;
+  --color-primary-800: #2E7D32;
+  /* User's Primary */
+  --color-primary-900: #1b5e20;
+
+  --color-secondary: #F4D56F;
+  /* User's Secondary */
+  --color-accent: #FF6F00;
+  /* User's Accent */
+  --color-bg-base: #F9F9F9;
+  --color-text-base: #1C1C1C;
+
+  /* Dark Mode Variables */
+  --color-dark-bg: #0F172A;
+  --color-dark-surface: #1E293B;
+  --color-dark-border: #334155;
+  --color-dark-text: #F8FAFC;
+  --color-dark-text-muted: #94A3B8;
+
+  --animate-fade-in: fadeIn 0.4s ease-out;
+  --animate-slide-up: slideUp 0.4s ease-out;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    0% {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-bg-base text-text-base font-sans antialiased transition-colors duration-500;
+  }
+
+  .dark body {
+    @apply bg-dark-bg text-dark-text;
+  }
+
+  button,
+  a,
+  select,
+  [role="button"],
+  .cursor-pointer {
+    @apply cursor-pointer;
+  }
+}
+
+@utility glass {
+  @apply bg-white/90 border border-slate-200 shadow-sm;
+}
+
+@utility card-simple {
+  @apply bg-white rounded-xl border border-slate-200 shadow-sm hover:border-primary-800 transition-all;
+}
+
+@utility btn-primary {
+  @apply px-5 py-3 bg-primary-800 text-white rounded-xl font-bold hover:bg-primary-900 transition-all active:scale-95 flex items-center justify-center;
+}
+
+@utility btn-secondary {
+  @apply px-5 py-3 bg-secondary text-text-base rounded-xl font-bold hover:bg-[#e6c75c] transition-all active:scale-95 flex items-center justify-center;
+}
+
+@utility input-field {
+  @apply w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-800 focus:border-transparent bg-white text-lg;
+}
+
+/* Lenis Smooth Scroll */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
