@@ -271,7 +271,26 @@ const TrackingPage = () => {
                                     </div>
                                 ))}
                             </div>
-                            <div className="pt-4 border-t border-slate-100 flex justify-between items-center"><span className="text-xs font-black uppercase">Total Bill</span><span className="text-xl font-black">₹{total}</span></div>
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                                <div className="space-y-1">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Settlement</p>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant={liveOrder?.paymentStatus === 'COMPLETED' ? 'success' : 'warning'} className="px-2 py-0.5 text-[7px] border-none shadow-sm">
+                                            {liveOrder?.paymentMethod?.toUpperCase() || 'COD'}
+                                        </Badge>
+                                        <span className={cn(
+                                            "text-[10px] font-black uppercase tracking-widest",
+                                            liveOrder?.paymentStatus === 'COMPLETED' ? "text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.2)]" : "text-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+                                        )}>
+                                            {liveOrder?.paymentStatus === 'COMPLETED' ? 'PAID' : 'PENDING'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Bill</p>
+                                    <span className="text-xl font-black text-slate-900 dark:text-white">₹{total}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -178,6 +178,23 @@ export const adminService = {
             return { success: false, message: 'Server connection failed' };
         }
     },
+    updatePaymentStatus: async (id, paymentStatus) => {
+        try {
+            const token = localStorage.getItem('vdp_token');
+            const response = await fetch(`http://localhost:6060/api/orders/${id}/payment`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ paymentStatus })
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating payment status:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
     getPartners: () => new Promise(resolve => setTimeout(() => resolve(DELIVERY_PARTNERS), 500)),
     getPartnerById: (id) => new Promise(resolve => setTimeout(() => {
         resolve(DELIVERY_PARTNERS.find(p => p.id === Number(id)));

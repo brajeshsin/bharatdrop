@@ -77,3 +77,38 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Update order payment status
+// @route   PATCH /api/orders/:id/payment
+// @access  Private (Admin)
+exports.updatePaymentStatus = async (req, res) => {
+    try {
+        const { paymentStatus } = req.body;
+        const validStatuses = ['PENDING', 'COMPLETED', 'FAILED'];
+
+        if (!validStatuses.includes(paymentStatus)) {
+            return res.status(400).json({ success: false, message: 'Invalid payment status' });
+        }
+
+        const customerDb = mongoose.connection.useDb('bharatdrop_customer');
+        const Order = customerDb.model('Order', OrderSchema);
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { paymentStatus },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        res.json({
+            success: true,
+            message: `Payment status updated to ${paymentStatus}`,
+            order
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

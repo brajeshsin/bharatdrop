@@ -55,6 +55,20 @@ const OrderDetail = () => {
         }
     };
 
+    const handlePaymentUpdate = async (newStatus) => {
+        try {
+            const response = await adminService.updatePaymentStatus(order._id, newStatus);
+            if (response.success) {
+                toast.success(`Payment marked as ${newStatus}`);
+                setOrder({ ...order, paymentStatus: newStatus });
+            } else {
+                toast.error(response.message || 'Update failed');
+            }
+        } catch (error) {
+            toast.error('Connection error');
+        }
+    };
+
     const getStatusVariant = (status) => {
         switch (status) {
             case 'DELIVERED': return 'delivered';
@@ -265,19 +279,34 @@ const OrderDetail = () => {
                                         <p className="text-[9px] font-black opacity-40 uppercase tracking-widest mb-1 italic">Settlement Mode</p>
                                         <p className="text-xl font-black uppercase italic tracking-widest">{order.paymentMethod}</p>
                                     </div>
-                                    <Badge className="bg-white/10 text-white border-none py-1.5 px-4 font-black text-[9px] tracking-widest uppercase">{order.paymentStatus}</Badge>
+                                    <Badge
+                                        variant={order.paymentStatus === 'COMPLETED' ? 'success' : 'warning'}
+                                        className="border-none py-1.5 px-4 font-black text-[9px] tracking-widest uppercase shadow-lg"
+                                    >
+                                        {order.paymentStatus === 'COMPLETED' ? 'PAID' : order.paymentStatus}
+                                    </Badge>
                                 </div>
+
+                                {order.paymentStatus === 'PENDING' && (
+                                    <button
+                                        onClick={() => handlePaymentUpdate('COMPLETED')}
+                                        className="w-full py-4 bg-white text-primary-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-secondary transition-all active:scale-95 shadow-xl"
+                                    >
+                                        Mark as Paid
+                                    </button>
+                                )}
+
                                 {order.paymentMethod === 'upi' && order.upiDetails && (
                                     <div className="pt-6 border-t border-white/10 space-y-4">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[9px] font-black opacity-40 uppercase tracking-widest">Ref Code</span>
-                                            <span className="text-[11px] font-black tracking-widest">{order.upiDetails.refNumber}</span>
+                                            <span className="text-[11px] font-black tracking-widest font-mono">{order.upiDetails.refNumber}</span>
                                         </div>
                                         {order.upiDetails.screenshot && (
                                             <a
                                                 href={order.upiDetails.screenshot}
                                                 target="_blank" rel="noopener noreferrer"
-                                                className="block w-full py-3 bg-white/10 hover:bg-white/20 transition-all rounded-xl text-center text-[9px] font-black uppercase tracking-[0.2em]"
+                                                className="block w-full py-3 bg-white/10 hover:bg-white/20 transition-all rounded-xl text-center text-[9px] font-black uppercase tracking-[0.2em] border border-white/5"
                                             >
                                                 Audit Screenshot
                                             </a>
