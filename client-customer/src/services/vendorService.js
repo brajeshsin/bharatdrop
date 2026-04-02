@@ -1,11 +1,12 @@
+import api from './api';
+
 export const vendorService = {
     getVendors: async (params = {}) => {
         try {
             const { category = 'All' } = params;
             const query = category !== 'All' ? `?category=${category}` : '';
-            const response = await fetch(`http://localhost:5000/api/vendors${query}`);
-            const data = await response.json();
-            return data.success ? data.vendors : [];
+            const response = await api.get(`/vendors${query}`);
+            return response.data.success ? response.data.vendors : [];
         } catch (error) {
             console.error('Error fetching vendors:', error);
             return [];
@@ -13,9 +14,8 @@ export const vendorService = {
     },
     getVendorById: async (id) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/vendors/${id}`);
-            const data = await response.json();
-            return data.success ? data.vendor : null;
+            const response = await api.get(`/vendors/${id}`);
+            return response.data.success ? response.data.vendor : null;
         } catch (error) {
             console.error('Error fetching vendor by ID:', error);
             return null;
@@ -25,9 +25,8 @@ export const vendorService = {
         try {
             const { section } = params;
             const query = section ? `?section=${section}` : '';
-            const response = await fetch(`http://localhost:5000/api/categories${query}`);
-            const data = await response.json();
-            return data.success ? data.categories : [];
+            const response = await api.get(`/categories${query}`);
+            return response.data.success ? response.data.categories : [];
         } catch (error) {
             console.error('Error fetching categories:', error);
             return [];

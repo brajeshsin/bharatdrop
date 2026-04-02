@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -26,12 +27,8 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await response.json();
+            const response = await api.post('/auth/login', { email, password });
+            const data = response.data;
 
             if (data.success) {
                 setUser(data.user);
@@ -50,7 +47,7 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: data.message };
             }
         } catch (error) {
-            return { success: false, message: 'Server connection failed' };
+            return { success: false, message: error.response?.data?.message || 'Server connection failed' };
         } finally {
             setLoading(false);
         }
@@ -59,14 +56,10 @@ export const AuthProvider = ({ children }) => {
     const requestOtp = async (email, mobile, name) => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/auth/request-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, mobile, name })
-            });
-            return await response.json();
+            const response = await api.post('/auth/request-otp', { email, mobile, name });
+            return response.data;
         } catch (error) {
-            return { success: false, message: 'Server connection failed' };
+            return { success: false, message: error.response?.data?.message || 'Server connection failed' };
         } finally {
             setLoading(false);
         }
@@ -75,12 +68,8 @@ export const AuthProvider = ({ children }) => {
     const verifyOtp = async (email, otp) => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, otp })
-            });
-            const data = await response.json();
+            const response = await api.post('/auth/verify-otp', { email, otp });
+            const data = response.data;
 
             if (data.success) {
                 setUser(data.user);
@@ -99,7 +88,7 @@ export const AuthProvider = ({ children }) => {
                 return { success: false, message: data.message };
             }
         } catch (error) {
-            return { success: false, message: 'Server connection failed' };
+            return { success: false, message: error.response?.data?.message || 'Server connection failed' };
         } finally {
             setLoading(false);
         }

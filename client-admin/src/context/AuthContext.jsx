@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -24,12 +25,8 @@ export const AuthProvider = ({ children }) => {
     const loginAdmin = async (email, password) => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:6060/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await response.json();
+            const response = await api.post('/auth/login', { email, password });
+            const data = response.data;
 
             if (data.success) {
                 setUser(data.user);
@@ -50,6 +47,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         setUser(null);
         localStorage.removeItem('vdp_user');
+        localStorage.removeItem('vdp_token');
         navigate('/login');
     };
 

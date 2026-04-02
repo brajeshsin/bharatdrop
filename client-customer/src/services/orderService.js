@@ -1,22 +1,10 @@
-const API_URL = 'http://localhost:5000/api/orders';
-
-const getHeaders = () => {
-    const token = localStorage.getItem('vdp_token');
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-    };
-};
+import api from './api';
 
 export const orderService = {
     createOrder: async (orderData) => {
         try {
-            const response = await fetch(`${API_URL}`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(orderData)
-            });
-            return await response.json();
+            const response = await api.post('/orders', orderData);
+            return response.data;
         } catch (error) {
             console.error('Error creating order:', error);
             throw error;
@@ -25,10 +13,8 @@ export const orderService = {
 
     getMyOrders: async () => {
         try {
-            const response = await fetch(`${API_URL}/my-orders`, {
-                headers: getHeaders()
-            });
-            return await response.json();
+            const response = await api.get('/orders/my-orders');
+            return response.data;
         } catch (error) {
             console.error('Error fetching orders:', error);
             throw error;
@@ -37,10 +23,8 @@ export const orderService = {
 
     getOrderById: async (id) => {
         try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                headers: getHeaders()
-            });
-            return await response.json();
+            const response = await api.get(`/orders/${id}`);
+            return response.data;
         } catch (error) {
             console.error('Error fetching order details:', error);
             throw error;
@@ -48,10 +32,8 @@ export const orderService = {
     },
     getPaymentMethods: async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/payments`, {
-                headers: getHeaders()
-            });
-            return await response.json();
+            const response = await api.get('/payments');
+            return response.data;
         } catch (error) {
             console.error('Error fetching payment methods:', error);
             throw error;

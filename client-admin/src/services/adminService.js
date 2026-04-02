@@ -45,19 +45,15 @@ export const ZONES = [
     { id: 2, town: 'Bicholi', villages: ['Bicholi Gram', 'Haripur'], distance: '5-10km' },
 ];
 
-// Admin API Simulation
+import api from './api';
+
+// Admin API Simulation & Real Endpoints
 export const adminService = {
     getStats: () => new Promise(resolve => setTimeout(() => resolve(ADMIN_STATS), 500)),
     getOrders: async () => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/orders`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            return data.success ? data.orders : [];
+            const response = await api.get('/orders');
+            return response.data.success ? response.data.orders : [];
         } catch (error) {
             console.error('Error fetching orders:', error);
             return [];
@@ -65,14 +61,8 @@ export const adminService = {
     },
     getOrderById: async (id) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/orders/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            return data.success ? data.order : null;
+            const response = await api.get(`/orders/${id}`);
+            return response.data.success ? response.data.order : null;
         } catch (error) {
             console.error('Error fetching order details:', error);
             return null;
@@ -80,16 +70,8 @@ export const adminService = {
     },
     updateOrderStatus: async (id, status) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/orders/${id}/status`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ status })
-            });
-            return await response.json();
+            const response = await api.patch(`/orders/${id}/status`, { status });
+            return response.data;
         } catch (error) {
             console.error('Error updating order status:', error);
             return { success: false, message: 'Server connection failed' };
@@ -98,15 +80,8 @@ export const adminService = {
     getVendors: async (params = {}) => {
         try {
             const { page = 1, limit = 10, search = '' } = params;
-            const query = new URLSearchParams({ page, limit, search }).toString();
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors?${query}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            return data.success ? data : { data: [], pagination: {} };
+            const response = await api.get('/vendors', { params: { page, limit, search } });
+            return response.data.success ? response.data : { data: [], pagination: {} };
         } catch (error) {
             console.error('Error fetching vendors:', error);
             return { data: [], pagination: {} };
@@ -114,14 +89,8 @@ export const adminService = {
     },
     getVendorById: async (id) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            return data.success ? data.data : null;
+            const response = await api.get(`/vendors/${id}`);
+            return response.data.success ? response.data.data : null;
         } catch (error) {
             console.error('Error fetching vendor:', error);
             return null;
@@ -130,15 +99,8 @@ export const adminService = {
     getCustomers: async (params = {}) => {
         try {
             const { page = 1, limit = 10, search = '' } = params;
-            const query = new URLSearchParams({ page, limit, search }).toString();
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/customers?${query}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
-            return data.success ? data : { data: [], pagination: {} };
+            const response = await api.get('/customers', { params: { page, limit, search } });
+            return response.data.success ? response.data : { data: [], pagination: {} };
         } catch (error) {
             console.error('Error fetching customers:', error);
             return { data: [], pagination: {} };
@@ -146,16 +108,8 @@ export const adminService = {
     },
     createVendor: async (vendorData) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(vendorData)
-            });
-            return await response.json();
+            const response = await api.post('/vendors', vendorData);
+            return response.data;
         } catch (error) {
             console.error('Error creating vendor:', error);
             return { success: false, message: 'Server connection failed' };
@@ -163,16 +117,8 @@ export const adminService = {
     },
     updateVendor: async (id, vendorData) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(vendorData)
-            });
-            return await response.json();
+            const response = await api.put(`/vendors/${id}`, vendorData);
+            return response.data;
         } catch (error) {
             console.error('Error updating vendor:', error);
             return { success: false, message: 'Server connection failed' };
@@ -180,14 +126,8 @@ export const adminService = {
     },
     deleteVendor: async (id) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            return await response.json();
+            const response = await api.delete(`/vendors/${id}`);
+            return response.data;
         } catch (error) {
             console.error('Error deleting vendor:', error);
             return { success: false, message: 'Server connection failed' };
@@ -195,16 +135,8 @@ export const adminService = {
     },
     updatePaymentStatus: async (id, paymentStatus) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/orders/${id}/payment`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ paymentStatus })
-            });
-            return await response.json();
+            const response = await api.patch(`/orders/${id}/payment`, { paymentStatus });
+            return response.data;
         } catch (error) {
             console.error('Error updating payment status:', error);
             return { success: false, message: 'Server connection failed' };
@@ -217,13 +149,8 @@ export const adminService = {
     getZones: () => new Promise(resolve => setTimeout(() => resolve(ZONES), 500)),
     getPaymentMethods: async () => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/payments`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            return await response.json();
+            const response = await api.get('/payments');
+            return response.data;
         } catch (error) {
             console.error('Error fetching payment methods:', error);
             return { success: false, message: 'Server connection failed' };
@@ -231,14 +158,8 @@ export const adminService = {
     },
     togglePaymentMethod: async (id) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/payments/${id}/toggle`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            return await response.json();
+            const response = await api.patch(`/payments/${id}/toggle`);
+            return response.data;
         } catch (error) {
             console.error('Error toggling payment method:', error);
             return { success: false, message: 'Server connection failed' };
@@ -246,14 +167,8 @@ export const adminService = {
     },
     toggleItemStock: async (vendorId, itemName) => {
         try {
-            const token = localStorage.getItem('vdp_token');
-            const response = await fetch(`http://localhost:6060/api/vendors/${vendorId}/items/${itemName}/toggle-stock`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            return await response.json();
+            const response = await api.patch(`/vendors/${vendorId}/items/${itemName}/toggle-stock`);
+            return response.data;
         } catch (error) {
             console.error('Error toggling item stock:', error);
             return { success: false, message: 'Server connection failed' };
