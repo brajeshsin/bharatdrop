@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { ArrowLeft, Star, Clock, Plus, Minus, ShoppingCart, Info, ArrowRight, Tag } from 'lucide-react';
 import { Button, Badge } from '../../components/common';
@@ -7,6 +8,7 @@ import { vendorService } from '../../services/vendorService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
+    const { t } = useTranslation();
     const [imageError, setImageError] = useState(false);
 
     return (
@@ -35,6 +37,15 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                         {product.category}
                     </Badge>
                 </div>
+
+                {(product.isOutOfStock || product.stock <= 0) && (
+                    <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-6 text-center z-10">
+                        <div className="border-4 border-white/20 p-4 rounded-3xl">
+                            <p className="text-white font-black text-xl uppercase tracking-tighter italic leading-none">{t('shop.sold_out')}</p>
+                            <p className="text-white/60 text-[8px] font-bold uppercase tracking-widest mt-2 px-2">{t('shop.restocking_soon')}</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Product Info Section */}
@@ -45,7 +56,7 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
 
                 <div className="mt-auto pt-4 flex items-end justify-between gap-2">
                     <div className="space-y-0.5">
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Price</p>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">{t('shop.price')}</p>
                         <p className="text-2xl font-black text-primary-800 dark:text-primary-400 leading-none flex items-baseline gap-1">₹{product.price}{product.unit && <span className="text-[10px] opacity-60 font-bold uppercase tracking-widest">/ {product.unit}</span>}</p>
                     </div>
 
@@ -69,9 +80,13 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                         ) : (
                             <button
                                 onClick={() => addToCart(product)}
-                                className="h-12 px-6 bg-primary-800 text-white rounded-2xl font-black shadow-lg shadow-primary-800/10 hover:bg-primary-900 active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2"
+                                disabled={product.isOutOfStock || product.stock <= 0}
+                                className={`h-12 px-6 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 ${(product.isOutOfStock || product.stock <= 0)
+                                    ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
+                                    : "bg-primary-800 text-white hover:bg-primary-900 shadow-primary-800/10"
+                                    }`}
                             >
-                                <Plus size={14} strokeWidth={3} /> ADD
+                                <Plus size={14} strokeWidth={3} /> {(product.isOutOfStock || product.stock <= 0) ? t('shop.sold_out') : t('shop.add')}
                             </button>
                         )}
                     </div>
@@ -84,6 +99,7 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
 const ShopDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [shop, setShop] = useState(null);
     const [shopProducts, setShopProducts] = useState([]);
     const { cart, addToCart: contextAddToCart, removeFromCart: contextRemoveFromCart, cartTotal, itemCount } = useCart();
@@ -102,7 +118,9 @@ const ShopDetails = () => {
                     image: item.image || data.image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800',
                     category: data.category,
                     shopId: data._id,
-                    unit: item.unit
+                    unit: item.unit,
+                    stock: item.stock,
+                    isOutOfStock: item.isOutOfStock
                 }));
                 setShopProducts(mappedProducts);
                 localStorage.setItem('bd_last_shop', JSON.stringify(data));
@@ -125,7 +143,7 @@ const ShopDetails = () => {
     const shopId = id; // use the URL param id directly as it matches the database _id
     const shopCartItems = shop && cart[shopId] ? cart[shopId].items : {};
 
-    if (!shop) return <div className="p-10 text-center font-black text-slate-400">Loading shop...</div>;
+    if (!shop) return <div className="p-10 text-center font-black text-slate-400">{t('shop.loading')}</div>;
 
     return (
         <div className="w-full space-y-16 animate-fade-in relative pb-12">
@@ -136,7 +154,7 @@ const ShopDetails = () => {
                 </div>
                 <div className="flex-1 text-center md:text-left space-y-3">
                     <div className="flex items-center justify-center md:justify-start gap-2">
-                        <Badge className="bg-secondary text-primary-900 border-none font-black px-3 py-1 text-[10px] uppercase tracking-widest leading-none">Verified Partner</Badge>
+                        <Badge className="bg-secondary text-primary-900 border-none font-black px-3 py-1 text-[10px] uppercase tracking-widest leading-none">{t('shop.verified_partner')}</Badge>
                         <div className="flex items-center gap-1 bg-primary-50 dark:bg-primary-900/30 px-2 py-1 rounded-lg text-primary-800 dark:text-primary-400 font-black text-[10px]">
                             <Star size={12} fill="currentColor" /> {shop.rating}
                         </div>
@@ -144,13 +162,13 @@ const ShopDetails = () => {
                     <h2 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{shop.name}</h2>
                     <div className="flex items-center justify-center md:justify-start gap-4 text-slate-400 font-bold text-xs uppercase tracking-widest">
                         <div className="flex items-center gap-1.5"><Clock size={14} className="text-primary-800" /> {shop.time}</div>
-                        <div className="flex items-center gap-1.5"><Tag size={14} className="text-primary-800" /> Min. ₹99</div>
+                        <div className="flex items-center gap-1.5"><Tag size={14} className="text-primary-800" /> {t('shop.min_order')}</div>
                     </div>
                 </div>
                 <div className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
                     <Info size={20} className="text-primary-800 shrink-0" />
                     <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-wide max-w-[150px]">
-                        Standard village delivery fee <span className="text-primary-800">₹20</span> applies.
+                        {t('shop.delivery_fee_msg')} <span className="text-primary-800">₹20</span> {t('shop.applies')}.
                     </p>
                 </div>
             </section>
@@ -159,8 +177,8 @@ const ShopDetails = () => {
             <div className="space-y-10">
                 <div className="flex items-center justify-between px-4">
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Available Today</h2>
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Fresh picks for you</p>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('shop.available_today')}</h2>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('shop.fresh_picks')}</p>
                     </div>
                 </div>
 
@@ -182,7 +200,7 @@ const ShopDetails = () => {
                         onClick={() => navigate(`/home/shop/${id}/products`)}
                         className="group bg-white dark:bg-slate-800 text-primary-800 dark:text-primary-400 border-2 border-slate-100 dark:border-slate-800 hover:border-primary-800 rounded-[2rem] px-12 py-5 text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3 transition-all hover:shadow-xl active:scale-95 shadow-lg shadow-slate-200/50 dark:shadow-none"
                     >
-                        See All
+                        {t('shop.see_all')}
                         <div className="w-8 h-8 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center group-hover:bg-primary-800 group-hover:text-white transition-all">
                             <ArrowRight size={16} strokeWidth={3} />
                         </div>

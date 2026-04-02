@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     ShoppingBag, ChevronRight, Package, Calendar,
     MapPin, Search, ChevronLeft, RotateCcw,
@@ -12,6 +13,7 @@ import { toast } from 'react-hot-toast';
 
 const Orders = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [allOrders, setAllOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -99,8 +101,8 @@ const Orders = () => {
         <div className="w-full max-w-5xl mx-auto space-y-8 pb-32 animate-fade-in px-4">
             {/* Minimalist Header */}
             <div className="pt-8 space-y-2">
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Order History</h1>
-                <p className="text-sm font-bold text-slate-400 dark:text-slate-500">Manage and track your recent marketplace orders</p>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{t('orders.title')}</h1>
+                <p className="text-sm font-bold text-slate-400 dark:text-slate-500">{t('orders.subtitle')}</p>
             </div>
 
             {/* Zomato-style Search & Filters */}
@@ -110,7 +112,7 @@ const Orders = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-600 transition-colors" size={18} />
                         <input
                             type="text"
-                            placeholder="Search orders, shops or items..."
+                            placeholder={t('orders.search_placeholder')}
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -137,7 +139,7 @@ const Orders = () => {
                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                             )}
                         >
-                            {tab}
+                            {t(`orders.filter_${tab.toLowerCase()}`)}
                         </button>
                     ))}
                 </div>
@@ -148,7 +150,7 @@ const Orders = () => {
                 {isLoading ? (
                     <div className="py-20 text-center flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-primary-800 border-t-transparent rounded-full animate-spin" />
-                        <p className="font-black text-slate-400 uppercase tracking-widest text-xs italic">Syncing with Bazaar...</p>
+                        <p className="font-black text-slate-400 uppercase tracking-widest text-xs italic">{t('orders.syncing')}</p>
                     </div>
                 ) : (
                     <>
@@ -182,7 +184,7 @@ const Orders = () => {
                                                     "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
                                                     getStatusStyles(order.status)
                                                 )}>
-                                                    {order.status}
+                                                    {t(`tracking.status_${order.status.toLowerCase()}`)}
                                                 </span>
                                                 <button className="p-2 text-slate-300 hover:text-slate-500 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
                                                     <MoreVertical size={16} />
@@ -195,7 +197,7 @@ const Orders = () => {
 
                                         {/* Card Body: Items List */}
                                         <div className="px-6 md:px-8 py-5 space-y-3">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Ordered Items</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{t('orders.items_label')}</p>
                                             <div className="space-y-2">
                                                 {order.items.map((item, idx) => (
                                                     <div key={idx} className="flex items-center justify-between text-sm">
@@ -215,7 +217,7 @@ const Orders = () => {
                                                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
                                                     <Calendar size={10} /> {order.date}
                                                 </div>
-                                                <span className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Total Paid: ₹{order.total}</span>
+                                                <span className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('orders.total_paid')}: ₹{order.total}</span>
                                             </div>
 
                                             <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -234,7 +236,7 @@ const Orders = () => {
                                                         })}
                                                         className="flex-1 sm:flex-none px-8 py-3 bg-primary-800 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-primary-900/10 hover:scale-105 active:scale-95 transition-all"
                                                     >
-                                                        Track Order
+                                                        {t('orders.track_order')}
                                                     </Button>
                                                 ) : (
                                                     <Button
@@ -242,7 +244,7 @@ const Orders = () => {
                                                         variant="outline"
                                                         className="flex-1 sm:flex-none px-8 py-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-[11px] font-black uppercase tracking-widest hover:border-primary-800 transition-all hover:text-primary-800"
                                                     >
-                                                        Order Summary
+                                                        {t('orders.summary')}
                                                     </Button>
                                                 )}
                                                 <button className="flex items-center justify-center w-12 h-12 rounded-xl border-2 border-slate-100 dark:border-slate-800 text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-primary-800 transition-all" title="Get Help">
@@ -264,8 +266,8 @@ const Orders = () => {
                                     <ShoppingCart size={40} />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">No orders found</h3>
-                                    <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto">We couldn't find any orders matching your filters. Why not explore our latest shops?</p>
+                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('orders.no_orders')}</h3>
+                                    <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto">{t('orders.no_orders_msg')}</p>
                                 </div>
                                 <Button
                                     onClick={() => {
@@ -275,7 +277,7 @@ const Orders = () => {
                                     }}
                                     className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-10 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl"
                                 >
-                                    Browse Bazaar
+                                    {t('orders.browse_bazaar')}
                                 </Button>
                             </div>
                         )}
@@ -345,9 +347,9 @@ const Orders = () => {
                             <div className="p-8 space-y-8">
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] font-black text-primary-800 dark:text-primary-400 uppercase tracking-[0.3em] leading-none mb-2">Order Confirmed</p>
+                                        <p className="text-[10px] font-black text-primary-800 dark:text-primary-400 uppercase tracking-[0.3em] leading-none mb-2">{t('orders.confirmed')}</p>
                                         <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">{selectedOrder.id}</h2>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Date: {selectedOrder.date}</p>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('orders.date_label')}: {selectedOrder.date}</p>
                                     </div>
                                     <button
                                         onClick={() => setSelectedOrder(null)}
@@ -362,7 +364,7 @@ const Orders = () => {
                                         <img src={selectedOrder.shop.image} alt="" className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Puchased from</p>
+                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">{t('orders.purchased_from')}</p>
                                         <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase leading-none tracking-tight">{selectedOrder.shop.name}</h3>
                                         <p className="text-xs font-bold text-primary-800 dark:text-emerald-400 mt-1 uppercase tracking-widest">{selectedOrder.shop.location}</p>
                                     </div>
@@ -382,7 +384,7 @@ const Orders = () => {
 
                                         <div className="pt-6 mt-6 border-t-2 border-dashed border-slate-100 dark:border-slate-800 space-y-3 font-bold text-xs">
                                             <div className="flex justify-between text-xl font-black text-slate-900 dark:text-white pt-4 uppercase tracking-tighter">
-                                                <span>Grand Total</span>
+                                                <span>{t('orders.grand_total')}</span>
                                                 <span className="text-primary-800">₹{selectedOrder.total}</span>
                                             </div>
                                         </div>
@@ -393,7 +395,7 @@ const Orders = () => {
                                     onClick={() => setSelectedOrder(null)}
                                     className="w-full py-5 bg-primary-800 text-white rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-xl shadow-primary-900/20 hover:scale-[1.02] active:scale-95 transition-all"
                                 >
-                                    Dismiss Summary
+                                    {t('orders.dismiss')}
                                 </Button>
                             </div>
                         </motion.div>

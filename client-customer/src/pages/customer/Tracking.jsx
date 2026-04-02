@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     ArrowLeft, CheckCircle2, Clock, MapPin, Phone, ShieldCheck,
     ChevronRight, User, Star, ShoppingBag, CreditCard, Truck,
@@ -67,6 +68,7 @@ const ConfettiParticle = ({ delay }) => {
 };
 
 const SuccessOverlay = ({ onComplete }) => {
+    const { t } = useTranslation();
     useEffect(() => {
         const timer = setTimeout(onComplete, 3000);
         return () => clearTimeout(timer);
@@ -95,32 +97,33 @@ const SuccessOverlay = ({ onComplete }) => {
                     </div>
                 </div>
                 <div className="space-y-2 mb-6 text-center">
-                    <h2 className="text-5xl font-black uppercase tracking-tighter leading-none bg-gradient-to-br from-primary-800 via-primary-600 to-primary-900 bg-clip-text text-transparent">Order Placed!</h2>
+                    <h2 className="text-5xl font-black uppercase tracking-tighter leading-none bg-gradient-to-br from-primary-800 via-primary-600 to-primary-900 bg-clip-text text-transparent">{t('tracking.order_placed')}</h2>
                     <div className="h-1 bg-primary-800/20 rounded-full mx-auto max-w-[120px]" />
                 </div>
                 <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.4em] mb-12 leading-loose">
-                    Initiating Village Protocol <br /> Partner assigned & items being packed
+                    {t('tracking.protocol')} <br /> {t('tracking.partner_assigned')}
                 </p>
                 <Button onClick={onComplete} className="w-full bg-slate-950 dark:bg-white dark:text-slate-950 text-white py-6 rounded-3xl font-black text-xs uppercase tracking-widest transition-all shadow-xl">
-                    Track Shipment
+                    {t('tracking.track_shipment')}
                 </Button>
             </motion.div>
         </motion.div>
     );
 };
 
-const TRACKING_STATUSES = [
-    { id: 'PENDING', label: 'Order Sent', desc: 'Shops are reviewing your order' },
-    { id: 'ACCEPTED', label: 'Confirmed', desc: 'All vendors have accepted & packing' },
-    { id: 'READY', label: 'Ready', desc: 'Partner is arriving at shops' },
-    { id: 'PICKED', label: 'On the Way', desc: 'Heading to your village' },
-    { id: 'DELIVERED', label: 'Delivered', desc: 'Collected at your doorstep' }
+const getTrackingStatuses = (t) => [
+    { id: 'PENDING', label: t('tracking.status_pending'), desc: t('tracking.desc_pending') },
+    { id: 'ACCEPTED', label: t('tracking.status_accepted'), desc: t('tracking.desc_accepted') },
+    { id: 'READY', label: t('tracking.status_ready'), desc: t('tracking.desc_ready') },
+    { id: 'PICKED', label: t('tracking.status_picked'), desc: t('tracking.desc_picked') },
+    { id: 'DELIVERED', label: t('tracking.status_delivered'), desc: t('tracking.desc_delivered') }
 ];
 
-const getStatusIndex = (status) => {
+const getStatusIndex = (status, t) => {
     if (!status) return 0;
     const normalized = status.toUpperCase();
-    const index = TRACKING_STATUSES.findIndex(s => s.id === normalized);
+    const statuses = getTrackingStatuses(t);
+    const index = statuses.findIndex(s => s.id === normalized);
     return index >= 0 ? index : 0;
 };
 
@@ -128,13 +131,20 @@ const TrackingPage = () => {
     const { state } = useLocation();
     const { id: paramId } = useParams();
     const navigate = useNavigate();
-    const [showSuccess, setShowSuccess] = useState(state?.isNewOrder || false);
+    const { t } = useTranslation();
+    const TRACKING_STATUSES = getTrackingStatuses(t);
+    const [showSuccess, setShowSuccess] = useState(() => {
+        // Only show success if isNewOrder is true AND status is actually PENDING or not set yet
+        const isNew = state?.isNewOrder;
+        const status = state?.status || 'PENDING';
+        return isNew && (status === 'PENDING');
+    });
 
     const [shops, setShops] = useState(state?.shops || []);
     const [total, setTotal] = useState(state?.total || 0);
     const [liveOrder, setLiveOrder] = useState(state?.liveOrder || null);
     const [lastSyncTime, setLastSyncTime] = useState(null);
-    const [currentStatus, setCurrentStatus] = useState(getStatusIndex(state?.status || 'PENDING'));
+    const [currentStatus, setCurrentStatus] = useState(getStatusIndex(state?.status || 'PENDING', t));
 
     const fetchLiveStatus = async () => {
         try {
@@ -145,7 +155,7 @@ const TrackingPage = () => {
             if (response.success && response.order) {
                 const order = response.order;
                 setLiveOrder(order);
-                setCurrentStatus(getStatusIndex(order.status));
+                setCurrentStatus(getStatusIndex(order.status, t));
                 setLastSyncTime(new Date());
 
                 if (shops.length === 0) {
@@ -171,11 +181,33 @@ const TrackingPage = () => {
     useEffect(() => {
         fetchLiveStatus();
         const interval = setInterval(fetchLiveStatus, 5000);
+
+        // Clear the success flag from history state after the first render
+        // This prevents the overlay from reappearing on refresh
+        if (state?.isNewOrder) {
+            navigate(window.location.pathname, {
+                replace: true,
+                state: { ...state, isNewOrder: false }
+            });
+        }
+
         return () => clearInterval(interval);
     }, [paramId, state?.id]);
 
     const formatStatusTime = (index) => {
         if (!liveOrder) return '--';
+
+        const statusId = TRACKING_STATUSES[index]?.id;
+        // Attempt to find the actual timestamp for this status from the backend timeline
+        const timelineEntry = liveOrder.statusTimeline?.find(entry => entry.status === statusId);
+
+        if (timelineEntry && timelineEntry.timestamp) {
+            return new Date(timelineEntry.timestamp).toLocaleString('en-IN', {
+                day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true
+            }).toUpperCase();
+        }
+
+        // Fallback for legacy orders or estimated future steps
         const created = new Date(liveOrder.createdAt);
         const offsets = [0, 2, 10, 15, 25];
         const time = new Date(created.getTime() + offsets[index] * 60000);
@@ -189,8 +221,8 @@ const TrackingPage = () => {
             <div className="flex flex-col items-center justify-center py-20 relative z-10">
                 <TrackingBackground />
                 <ShoppingBag size={64} className="text-slate-300 mb-6" />
-                <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter text-2xl">No Active Order</h3>
-                <Button onClick={() => navigate('/home')} className="mt-8 bg-primary-800 text-white px-10 py-4 rounded-xl">Explore Shops</Button>
+                <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter text-2xl">{t('tracking.no_active')}</h3>
+                <Button onClick={() => navigate('/home')} className="mt-8 bg-primary-800 text-white px-10 py-4 rounded-xl">{t('tracking.explore')}</Button>
             </div>
         );
     }
@@ -208,7 +240,7 @@ const TrackingPage = () => {
                         </button>
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking Status</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('tracking.tracking_status')}</span>
                                 <Badge variant="primary" className="text-[8px] tracking-[0.2em]">LIVE ENGINE</Badge>
                             </div>
                             <h1 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tighter leading-none">
@@ -241,9 +273,9 @@ const TrackingPage = () => {
                                     <Clock size={36} strokeWidth={4} />
                                 </div>
                             </div>
-                            <Badge className="bg-primary-800 text-white border-none font-black text-[10px] uppercase tracking-[0.4em] mb-4">Arriving in</Badge>
-                            <h2 className="text-6xl font-black leading-none mb-4">12 <span className="text-secondary text-4xl">MINS</span></h2>
-                            <p className="text-primary-300 font-bold text-[10px] uppercase tracking-widest">Estimated Village Lead Time</p>
+                            <Badge className="bg-primary-800 text-white border-none font-black text-[10px] uppercase tracking-[0.4em] mb-4">{t('tracking.arriving_in')}</Badge>
+                            <h2 className="text-6xl font-black leading-none mb-4">12 <span className="text-secondary text-4xl">{t('tracking.mins')}</span></h2>
+                            <p className="text-primary-300 font-bold text-[10px] uppercase tracking-widest">{t('tracking.lead_time')}</p>
                         </div>
 
                         <div className="bg-white dark:bg-slate-900 rounded-[3rem] border-2 border-slate-100 dark:border-slate-800 p-8 shadow-xl flex items-center gap-6">
@@ -251,7 +283,7 @@ const TrackingPage = () => {
                                 <User size={32} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned Partner</p>
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('tracking.assigned_partner')}</p>
                                 <h4 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Ravi Kumar</h4>
                                 <div className="flex items-center gap-2 mt-1">
                                     <div className="flex items-center gap-0.5 text-secondary"><Star size={10} fill="currentColor" /><span className="text-xs font-black text-slate-800 dark:text-white ml-1">4.9</span></div>
@@ -260,7 +292,7 @@ const TrackingPage = () => {
                         </div>
 
                         <div className="bg-white/60 dark:bg-slate-900/60 rounded-[3rem] border-2 border-slate-100 dark:border-slate-800 p-8 shadow-xl space-y-6">
-                            <div className="flex items-center justify-between"><h3 className="text-lg font-black uppercase tracking-tighter">Order Summary</h3><ShoppingBag size={20} className="text-slate-400" /></div>
+                            <div className="flex items-center justify-between"><h3 className="text-lg font-black uppercase tracking-tighter">{t('tracking.summary')}</h3><ShoppingBag size={20} className="text-slate-400" /></div>
                             <div className="space-y-4">
                                 {shops.map((shop, i) => (
                                     <div key={i} className="space-y-2">
@@ -273,7 +305,7 @@ const TrackingPage = () => {
                             </div>
                             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Settlement</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('tracking.settlement')}</p>
                                     <div className="flex items-center gap-2">
                                         <Badge variant={liveOrder?.paymentStatus === 'COMPLETED' ? 'success' : 'warning'} className="px-2 py-0.5 text-[7px] border-none shadow-sm">
                                             {liveOrder?.paymentMethod?.toUpperCase() || 'COD'}
@@ -287,7 +319,7 @@ const TrackingPage = () => {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Bill</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">{t('tracking.total_bill')}</p>
                                     <span className="text-xl font-black text-slate-900 dark:text-white">₹{total}</span>
                                 </div>
                             </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth, ROLES } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -19,6 +20,11 @@ const MainLayout = () => {
     const location = useLocation();
     const { id: paramsId } = useParams();
     const { cart, cartTotal, itemCount } = useCart();
+    const { t, i18n } = useTranslation();
+
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
 
     const isHome = location.pathname === '/home';
     const isOrders = location.pathname === '/ordershistory';
@@ -71,10 +77,10 @@ const MainLayout = () => {
             const shopId = shopIdIndex > 0 ? parseInt(pathParts[shopIdIndex]) : null;
 
             const shop = SHOPS.find(s => s.id === shopId);
-            return shop ? shop.name : 'Shop Details';
+            return shop ? shop.name : t('header.shop_details');
         }
-        if (location.pathname === '/home/cart') return 'Your Order';
-        if (location.pathname.includes('/ordershistory/track')) return 'Track Order';
+        if (location.pathname === '/home/cart') return t('header.your_order');
+        if (location.pathname.includes('/ordershistory/track')) return t('header.track_order');
         return '';
     };
 
@@ -84,9 +90,9 @@ const MainLayout = () => {
         switch (role) {
             case ROLES.CUSTOMER:
                 return [
-                    { label: 'Browse', path: '/home', icon: Home },
-                    { label: 'Orders', path: '/ordershistory', icon: ShoppingBag },
-                    { label: 'Profile', path: '/home/profile', icon: User },
+                    { label: t('header.browse'), path: '/home', icon: Home },
+                    { label: t('header.orders'), path: '/ordershistory', icon: ShoppingBag },
+                    { label: t('header.profile'), path: '/home/profile', icon: User },
                 ];
             case ROLES.VENDOR:
                 return [
@@ -127,7 +133,7 @@ const MainLayout = () => {
                                 </div>
                                 <div className="hidden lg:block">
                                     <h1 className="text-lg font-black text-slate-800 dark:text-white leading-none tracking-tight">Bharat<span className="text-primary-800 dark:text-primary-400">Drop</span></h1>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Logistics Hub</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">{t('header.logistics_hub')}</p>
                                 </div>
                             </Link>
                         )}
@@ -135,7 +141,7 @@ const MainLayout = () => {
                         {/* Breadcrumb or Title for detail pages */}
                         {!isHubPage && (
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">BharatDrop Delivery</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{t('header.delivery_title')}</span>
                                 <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight leading-none truncate max-w-[150px] md:max-w-none">{getPageTitle()}</h1>
                             </div>
                         )}
@@ -150,7 +156,7 @@ const MainLayout = () => {
                                     <MapPin size={10} fill="currentColor" /> {selectedVillage}
                                 </div>
                                 <div className="flex items-center gap-1 font-black text-slate-800 dark:text-white group-hover:text-primary-800 transition-colors text-[13px] leading-none">
-                                    Switch Village <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+                                    {t('header.switch_village')} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
                                 </div>
                             </div>
                         )}
@@ -160,7 +166,7 @@ const MainLayout = () => {
                     <div className="hidden lg:flex flex-1 max-w-md relative group mx-4 h-12">
                         <input
                             type="text"
-                            placeholder="Search shops, products..."
+                            placeholder={t('header.search_placeholder')}
                             value={globalSearchQuery}
                             onChange={(e) => setGlobalSearchQuery(e.target.value)}
                             onKeyDown={(e) => {
@@ -208,6 +214,22 @@ const MainLayout = () => {
 
                     {/* Right Section: Actions */}
                     <div className="flex items-center gap-2">
+                        {/* Language Switcher */}
+                        <div className="hidden sm:flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-100 dark:border-slate-800/50 mr-2">
+                            <button
+                                onClick={() => changeLanguage('en')}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'en' ? 'bg-white dark:bg-slate-700 text-primary-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                EN
+                            </button>
+                            <button
+                                onClick={() => changeLanguage('hi')}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'hi' ? 'bg-white dark:bg-slate-700 text-primary-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                HI
+                            </button>
+                        </div>
+
                         <button className="hidden sm:flex p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all relative">
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
@@ -252,7 +274,7 @@ const MainLayout = () => {
                                 onClick={logout}
                                 className="absolute -bottom-14 right-0 bg-white dark:bg-slate-800 shadow-2xl rounded-2xl p-4 border border-slate-100 dark:border-slate-700 opacity-0 scale-90 translate-y-2 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto transition-all flex items-center gap-3 text-xs font-black text-red-600 min-w-[160px] active:scale-95"
                             >
-                                <LogOut size={16} /> SIGN OUT
+                                <LogOut size={16} /> {t('header.sign_out')}
                             </button>
                         </div>
                     </div>
@@ -331,7 +353,7 @@ const MainLayout = () => {
                             <div className="w-12 h-12 bg-primary-600 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg ring-4 ring-white/10">B</div>
                             <h3 className="text-3xl font-black uppercase tracking-tighter">Bharat<span className="text-secondary">Drop</span></h3>
                         </div>
-                        <p className="text-slate-400 font-bold text-sm leading-relaxed uppercase tracking-wide">Bringing the modern town commerce stack to the heart of rural India.</p>
+                        <p className="text-slate-400 font-bold text-sm leading-relaxed uppercase tracking-wide">{t('footer.tagline')}</p>
                         <div className="flex gap-4">
                             {[Globe, Send, MessageSquare].map((Icon, i) => (
                                 <button key={i} className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-primary-600 transition-colors shadow-inner">
@@ -342,17 +364,17 @@ const MainLayout = () => {
                     </div>
 
                     <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">Quick Links</h4>
+                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.quick_links')}</h4>
                         <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
-                            <li className="hover:text-white cursor-pointer transition-colors">Vendor Login</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">Partner With Us</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">About Story</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">Impact Report</li>
+                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.vendor_login')}</li>
+                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.partner_with_us')}</li>
+                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.about_story')}</li>
+                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.impact_report')}</li>
                         </ul>
                     </div>
 
                     <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">Service Areas</h4>
+                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.service_areas')}</h4>
                         <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
                             <li className="hover:text-white cursor-pointer transition-colors">Dhanikhera Town Areas</li>
                             <li className="hover:text-white cursor-pointer transition-colors">Bhagwant Nagar Town Areas</li>
@@ -362,14 +384,14 @@ const MainLayout = () => {
                     </div>
 
                     <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">Support</h4>
+                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.support')}</h4>
                         <div className="space-y-6">
                             <div className="flex items-center gap-4 group cursor-pointer">
                                 <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
                                     <Phone size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">WhatsApp Us</p>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.whatsapp_us')}</p>
                                     <p className="text-sm font-black uppercase tracking-tight">+91 999 888 777</p>
                                 </div>
                             </div>
@@ -378,7 +400,7 @@ const MainLayout = () => {
                                     <Mail size={20} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Email Support</p>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.email_support')}</p>
                                     <p className="text-sm font-black uppercase tracking-tight">care@bharatdrop.in</p>
                                 </div>
                             </div>
@@ -387,11 +409,11 @@ const MainLayout = () => {
                 </div>
 
                 <div className="w-full px-6 md:px-12 lg:px-16 mt-10 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">© 2026 BharatDrop Logistics Pvt Ltd. All Rights Reserved.</p>
+                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">{t('footer.copyright')}</p>
                     <div className="flex gap-8 text-slate-500 font-black text-[10px] uppercase tracking-widest">
-                        <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">Compliance</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.privacy')}</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.terms')}</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.compliance')}</span>
                     </div>
                 </div>
             </footer>
@@ -419,7 +441,7 @@ const MainLayout = () => {
                                 <div className="flex-1 relative">
                                     <input
                                         type="text"
-                                        placeholder="Search BharatDrop..."
+                                        placeholder={t('header.search_placeholder')}
                                         autoFocus
                                         value={globalSearchQuery}
                                         onChange={(e) => setGlobalSearchQuery(e.target.value)}
@@ -476,8 +498,8 @@ const MainLayout = () => {
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <div className="space-y-1">
-                                    <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">Nearby Villages</h2>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select your delivery hub</p>
+                                    <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('header.nearby_villages')}</h2>
+                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('header.select_hub')}</p>
                                 </div>
                                 <button
                                     onClick={() => {
@@ -497,7 +519,7 @@ const MainLayout = () => {
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="Search your village..."
+                                    placeholder={t('header.search_village')}
                                     value={locationSearchQuery}
                                     onChange={(e) => setLocationSearchQuery(e.target.value)}
                                     className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 transition-all shadow-inner"
@@ -532,7 +554,7 @@ const MainLayout = () => {
                                         <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto">
                                             <Search size={24} className="text-slate-300" />
                                         </div>
-                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No village found matching "{locationSearchQuery}"</p>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('header.no_village_found', { query: locationSearchQuery })}</p>
                                     </div>
                                 )}
                             </div>
@@ -546,7 +568,7 @@ const MainLayout = () => {
                                 className="w-full mt-10 py-5 text-xs font-black tracking-[0.2em] bg-slate-900 dark:bg-white dark:text-slate-900 shadow-xl"
                                 disabled={!tempSelectedVillage}
                             >
-                                CONFIRM SELECTION
+                                {t('header.confirm_selection')}
                             </Button>
                         </motion.div>
                     </motion.div>

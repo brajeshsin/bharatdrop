@@ -41,16 +41,16 @@ const AdminDashboard = () => {
         fetchData();
     }, [setIsLoading]);
 
-    if (loading) return <div className="animate-pulse space-y-8">
-        <div className="grid grid-cols-4 gap-6"><div className="h-32 bg-slate-200 rounded-3xl"></div><div className="h-32 bg-slate-200 rounded-3xl"></div><div className="h-32 bg-slate-200 rounded-3xl"></div><div className="h-32 bg-slate-200 rounded-3xl"></div></div>
-        <div className="h-96 bg-slate-200 rounded-3xl"></div>
+    if (loading || !stats) return <div className="animate-pulse space-y-8">
+        <div className="grid grid-cols-4 gap-6"><div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div><div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div><div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div><div className="h-32 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div></div>
+        <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-3xl"></div>
     </div>;
 
     const cards = [
-        { label: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12.5%' },
-        { label: 'Total Revenue', value: `₹${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+8.2%' },
-        { label: 'Active Vendors', value: stats.activeVendors, icon: Store, color: 'text-amber-600', bg: 'bg-amber-50', trend: '+4.1%' },
-        { label: 'Live Deliveries', value: stats.activeDeliveries, icon: Bike, color: 'text-purple-600', bg: 'bg-purple-50', trend: 'NEW' },
+        { label: 'Total Orders', value: stats?.totalOrders || 0, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50', trend: '+12.5%' },
+        { label: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString()}`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: '+8.2%' },
+        { label: 'Active Vendors', value: stats?.activeVendors || 0, icon: Store, color: 'text-amber-600', bg: 'bg-amber-50', trend: '+4.1%' },
+        { label: 'Live Deliveries', value: stats?.activeDeliveries || 0, icon: Bike, color: 'text-purple-600', bg: 'bg-purple-50', trend: 'NEW' },
     ];
 
     return (
@@ -176,13 +176,13 @@ const AdminDashboard = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                 {orders.map((order) => (
-                                    <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
-                                        <td className="px-8 py-5 font-black text-slate-900 dark:text-white text-sm">{order.id}</td>
+                                    <tr key={order._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
+                                        <td className="px-8 py-5 font-black text-slate-900 dark:text-white text-sm">{order.orderId}</td>
                                         <td className="px-8 py-5">
-                                            <p className="font-bold text-slate-700 dark:text-slate-300 text-sm leading-none">{order.customer}</p>
-                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{order.vendor}</p>
+                                            <p className="font-bold text-slate-700 dark:text-slate-300 text-sm leading-none">{order.customer?.name || 'Unknown'}</p>
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{order.vendor?.name || 'Direct Shop'}</p>
                                         </td>
-                                        <td className="px-8 py-5 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{order.location}</td>
+                                        <td className="px-8 py-5 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{order.deliveryAddress?.village || 'N/A'}</td>
                                         <td className="px-8 py-5">
                                             <Badge
                                                 variant={order.status === 'DELIVERED' ? 'success' : order.status === 'CANCELLED' ? 'error' : 'warning'}
@@ -191,7 +191,7 @@ const AdminDashboard = () => {
                                                 {order.status}
                                             </Badge>
                                         </td>
-                                        <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-white group-hover:text-primary-800 dark:group-hover:text-primary-400 transition-colors">₹{order.amount}</td>
+                                        <td className="px-8 py-5 text-right font-black text-slate-900 dark:text-white group-hover:text-primary-800 dark:group-hover:text-primary-400 transition-colors">₹{order.total || order.amount || 0}</td>
                                     </tr>
                                 ))}
                             </tbody>

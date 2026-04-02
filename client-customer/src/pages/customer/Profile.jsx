@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, MapPin, Phone, Shield, Bell, CreditCard, ChevronRight, Camera, Check, X } from 'lucide-react';
 import { Button, Card, Badge, Input } from '../../components/common';
 
 const CustomerProfile = () => {
     const { user } = useAuth();
+    const { t } = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: user?.name || 'Member Name',
@@ -20,26 +22,26 @@ const CustomerProfile = () => {
 
     const sections = [
         {
-            title: "Account Settings",
+            title: t('profile.account_settings'),
             items: [
-                { icon: User, label: "Personal Information", desc: "Change your name and avatar", path: "/profile/edit", value: formData.name, field: 'name' },
-                { icon: Mail, label: "Email Address", desc: formData.email, path: "/profile/email", value: formData.email, field: 'email' },
-                { icon: Phone, label: "Phone Number", desc: formData.phone, path: "/profile/phone", value: formData.phone, field: 'phone' }
+                { icon: User, label: t('profile.personal_info'), desc: t('profile.personal_info_desc'), path: "/profile/edit", value: formData.name, field: 'name' },
+                { icon: Mail, label: t('profile.email'), desc: formData.email, path: "/profile/email", value: formData.email, field: 'email' },
+                { icon: Phone, label: t('profile.phone'), desc: formData.phone, path: "/profile/phone", value: formData.phone, field: 'phone' }
             ]
         },
         {
-            title: "Delivery & Security",
+            title: t('profile.delivery_security'),
             items: [
-                { icon: MapPin, label: "Saved Addresses", desc: formData.address, path: "/profile/addresses", value: formData.address, field: 'address' },
-                { icon: Shield, label: "Privacy & Security", desc: "Password and data settings", path: "/profile/security" },
-                { icon: Bell, label: "Notifications", desc: "App, SMS and Email alerts", path: "/profile/notifications" }
+                { icon: MapPin, label: t('profile.saved_addresses'), desc: formData.address, path: "/profile/addresses", value: formData.address, field: 'address' },
+                { icon: Shield, label: t('profile.privacy_security'), desc: t('profile.privacy_desc'), path: "/profile/security" },
+                { icon: Bell, label: t('profile.notifications'), desc: t('profile.notifications_desc'), path: "/profile/notifications" }
             ]
         },
         {
-            title: "Payments & Orders",
+            title: t('profile.payments_orders'),
             items: [
-                { icon: CreditCard, label: "Payment Methods", desc: "UPI, Cards and Wallets", path: "/profile/payments" },
-                { icon: Bell, label: "Order History", desc: "View and track your past orders", path: "/ordershistory" }
+                { icon: CreditCard, label: t('profile.payment_methods'), desc: t('profile.payment_methods_desc'), path: "/profile/payments" },
+                { icon: Bell, label: t('profile.order_history'), desc: t('profile.order_history_desc'), path: "/ordershistory" }
             ]
         }
     ];
@@ -62,7 +64,7 @@ const CustomerProfile = () => {
                     </div>
 
                     <div className="text-center md:text-left space-y-2">
-                        <Badge variant="success" className="mb-2">Verified Member</Badge>
+                        <Badge variant="success" className="mb-2">{t('profile.verified_member')}</Badge>
                         {isEditing ? (
                             <div className="space-y-4 pt-4">
                                 <Input
@@ -89,14 +91,14 @@ const CustomerProfile = () => {
                         {isEditing ? (
                             <div className="flex gap-3 justify-end">
                                 <Button variant="ghost" onClick={() => setIsEditing(false)} className="text-xs font-black gap-2">
-                                    <X size={16} /> CANCEL
+                                    <X size={16} /> {t('common.cancel')}
                                 </Button>
                                 <Button onClick={handleSave} className="text-xs font-black gap-2 bg-emerald-600 hover:bg-emerald-700">
-                                    <Check size={16} /> SAVE CHANGES
+                                    <Check size={16} /> {t('profile.save_changes')}
                                 </Button>
                             </div>
                         ) : (
-                            <Button variant="outline" onClick={() => setIsEditing(true)} className="w-full md:w-auto text-xs font-black px-10">EDIT PROFILE</Button>
+                            <Button variant="outline" onClick={() => setIsEditing(true)} className="w-full md:w-auto text-xs font-black px-10">{t('profile.edit_button')}</Button>
                         )}
                     </div>
                 </div>
@@ -106,22 +108,22 @@ const CustomerProfile = () => {
             {isEditing ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <Card className="p-8 space-y-6">
-                        <h3 className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-4">Contact Information</h3>
+                        <h3 className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-4">{t('profile.contact_info')}</h3>
                         <Input
-                            label="Email Address"
+                            label={t('profile.email')}
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         />
                         <Input
-                            label="Phone Number"
+                            label={t('profile.phone')}
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         />
                     </Card>
                     <Card className="p-8 space-y-6">
-                        <h3 className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-4">Location Settings</h3>
+                        <h3 className="font-black text-slate-400 dark:text-slate-500 text-xs uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-4">{t('profile.location_settings')}</h3>
                         <Input
-                            label="Primary Village"
+                            label={t('profile.primary_village')}
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         />
@@ -157,10 +159,10 @@ const CustomerProfile = () => {
             <div className="pt-12 text-center md:text-right">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.5em] mb-4">BharatDrop v1.0.2 Stable</p>
                 <div className="flex flex-col md:flex-row gap-4 justify-end">
-                    <Button variant="ghost" className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-primary-800">Terms of Service</Button>
-                    <Button variant="ghost" className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-primary-800">Privacy Policy</Button>
+                    <Button variant="ghost" className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-primary-800">{t('profile.tos')}</Button>
+                    <Button variant="ghost" className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-primary-800">{t('profile.privacy_policy')}</Button>
                     <div className="w-full md:w-px h-px md:h-10 bg-slate-100 dark:bg-slate-800 mx-2"></div>
-                    <Button variant="outline" className="text-xs font-black text-red-600 border-red-100 hover:bg-red-50 dark:hover:bg-red-900/10 dark:border-red-900/30">DEACTIVATE ACCOUNT</Button>
+                    <Button variant="outline" className="text-xs font-black text-red-600 border-red-100 hover:bg-red-50 dark:hover:bg-red-900/10 dark:border-red-900/30">{t('profile.deactivate')}</Button>
                 </div>
             </div>
         </div>

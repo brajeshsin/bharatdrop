@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Search, MapPin, Clock, Star, ArrowRight, ShoppingBag,
     Zap, ShieldCheck, ChevronRight, LayoutGrid, Tag,
@@ -80,6 +81,7 @@ const CustomerHome = () => {
     const [vendors, setVendors] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loadingVendors, setLoadingVendors] = useState(true);
+    const { t } = useTranslation();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -138,16 +140,16 @@ const CustomerHome = () => {
                     <div className="relative z-20 p-8 md:p-16 space-y-6 max-w-2xl">
                         <Badge className="bg-secondary text-primary-900 border-none font-black py-2 px-4 text-xs uppercase tracking-widest leading-none">Hyperlocal Village Hub</Badge>
                         <h1 className="text-4xl md:text-6xl font-black text-white leading-none tracking-tight">
-                            TOWN'S BEST BAZAAR <br />
-                            <span className="text-secondary italic">AT YOUR DOORSTEP.</span>
+                            {t('home.hero_title')} <br />
+                            <span className="text-secondary italic">{t('home.hero_subtitle')}</span>
                         </h1>
                         <p className="text-primary-100 font-bold text-lg md:text-xl max-w-lg leading-relaxed">
-                            Order fresh groceries, medicines, and daily needs from town vendors directly to your village within 30 minutes.
+                            {t('home.hero_desc')}
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <Button className="py-4 px-8 text-lg font-black bg-white text-primary-900 border-none shadow-xl shadow-black/20 hover:bg-primary-800 hover:text-white transition-all">ORDER NOW</Button>
+                            <Button className="py-4 px-8 text-lg font-black bg-white text-primary-900 border-none shadow-xl shadow-black/20 hover:bg-primary-800 hover:text-white transition-all">{t('home.order_now')}</Button>
                             <div className="flex items-center gap-3 text-white font-black text-xs uppercase tracking-[0.2em] bg-black/20 backdrop-blur-md px-6 rounded-2xl">
-                                <Zap className="text-secondary" size={18} fill="currentColor" /> Express Delivery
+                                <Zap className="text-secondary" size={18} fill="currentColor" /> {t('home.express_delivery')}
                             </div>
                         </div>
                     </div>
@@ -156,9 +158,9 @@ const CustomerHome = () => {
                 {/* Categories - Swiggy Style */}
                 <section className="space-y-6">
                     <div className="flex items-center justify-between px-2">
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">What's on your mind?</h2>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">{t('home.whats_on_mind')}</h2>
                         <button className="text-primary-800 dark:text-primary-400 font-black text-xs uppercase tracking-widest flex items-center gap-1 group">
-                            Explore All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                            {t('home.explore_all')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
                     <div className="flex gap-6 md:gap-10 overflow-x-auto pb-4 pt-4 no-scrollbar">
@@ -178,8 +180,8 @@ const CustomerHome = () => {
                 <section className="space-y-8 pb-12">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2">
                         <div className="space-y-1">
-                            <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">Top Shops in Town</h2>
-                            <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Verified Partners Serving Your Village</p>
+                            <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">{t('home.top_shops')}</h2>
+                            <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">{t('home.verified_partners')}</p>
                         </div>
                         <div className="flex gap-2">
                             {["Ratings 4.5+", "Under 20 Mins", "Hot Deals"].map(filter => (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button } from '../../components/common';
+import { Card, Badge, Button, Select } from '../../components/common';
 import { adminService } from '../../services/adminService';
 import {
     Search, Filter, ChevronLeft, ChevronRight, Eye,
@@ -8,6 +8,15 @@ import {
 import { useLoading } from '../../context/LoadingContext';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+const STATUS_OPTIONS = [
+    { label: 'All Status', value: 'ALL' },
+    { label: 'Pending', value: 'PENDING' },
+    { label: 'Accepted', value: 'ACCEPTED' },
+    { label: 'Ready', value: 'READY' },
+    { label: 'Picked', value: 'PICKED' },
+    { label: 'Delivered', value: 'DELIVERED' },
+    { label: 'Cancelled', value: 'CANCELLED' }
+];
 
 const OrdersPage = () => {
     const navigate = useNavigate();
@@ -41,10 +50,14 @@ const OrdersPage = () => {
 
     // Filtering logic
     const filteredOrders = orders.filter(order => {
+        const customerName = order.customer?.name || '';
+        const vendorName = order.vendor?.name || '';
+        const orderId = order.orderId || '';
+
         const matchesSearch =
-            order.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.vendor.name.toLowerCase().includes(searchTerm.toLowerCase());
+            orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            vendorName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -94,21 +107,13 @@ const OrdersPage = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block text-nowrap">Filter By</span>
-                    <select
-                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2 font-black text-[11px] uppercase outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 dark:text-slate-200"
+                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800 min-w-[180px]">
+                    <Select
+                        options={STATUS_OPTIONS}
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Status</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="ACCEPTED">Accepted</option>
-                        <option value="READY">Ready</option>
-                        <option value="PICKED">Picked</option>
-                        <option value="DELIVERED">Delivered</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
+                        onChange={(val) => setStatusFilter(val)}
+                        size="sm"
+                    />
                 </div>
                 {(searchTerm || statusFilter !== 'ALL') && (
                     <button
@@ -148,14 +153,14 @@ const OrdersPage = () => {
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
                                             <span className="font-black text-slate-900 dark:text-white text-sm tracking-widest">{order.orderId}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 italic">{order.customer.name}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 italic">{order.customer?.name || 'Unknown'}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider">{order.vendor.name}</span>
+                                            <span className="font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider">{order.vendor?.name || 'Direct Shop'}</span>
                                             <div className="flex items-center gap-1.5 mt-1">
-                                                <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-2 h-4 text-[8px] font-black uppercase tracking-widest">{order.deliveryAddress.village}</Badge>
+                                                <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-2 h-4 text-[8px] font-black uppercase tracking-widest">{order.deliveryAddress?.village || 'N/A'}</Badge>
                                             </div>
                                         </div>
                                     </td>
@@ -171,7 +176,7 @@ const OrdersPage = () => {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex flex-col items-end">
-                                            <span className="font-black text-slate-900 dark:text-white text-base tracking-tighter italic">₹{order.total.toLocaleString()}</span>
+                                            <span className="font-black text-slate-900 dark:text-white text-base tracking-tighter italic">₹{(order.total || order.amount || 0).toLocaleString()}</span>
                                             <span className="text-[9px] font-black text-slate-900 dark:text-slate-500 uppercase tracking-widest">{order.paymentMethod === 'cod' ? 'COD' : 'UPI'} Pending</span>
                                         </div>
                                     </td>

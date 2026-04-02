@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, Button, Badge } from '../../components/common';
 import { Search, Store, Package, ChevronRight, ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +9,7 @@ import { vendorService } from '../../services/vendorService';
 const SearchResults = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const query = searchParams.get('q') || '';
 
     const [vendors, setVendors] = useState([]);
@@ -63,14 +65,14 @@ const SearchResults = () => {
                 <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center text-slate-200">
                     <Search size={48} />
                 </div>
-                <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Search BharatDrop</h2>
-                <p className="text-slate-400 font-bold max-w-sm uppercase text-[10px] tracking-widest leading-loose">Enter a search term in the header to find shops and products near you.</p>
+                <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('search.title')}</h2>
+                <p className="text-slate-400 font-bold max-w-sm uppercase text-[10px] tracking-widest leading-loose">{t('search.empty_msg')}</p>
             </div>
         );
     }
 
     if (loading) {
-        return <div className="p-20 text-center font-black text-slate-400 uppercase tracking-widest animate-pulse">Searching Bazaar...</div>;
+        return <div className="p-20 text-center font-black text-slate-400 uppercase tracking-widest animate-pulse">{t('search.searching')}</div>;
     }
 
     return (
@@ -78,14 +80,14 @@ const SearchResults = () => {
             {/* Header */}
             <div className="pt-10 space-y-3">
                 <div className="flex items-center gap-3 text-[10px] font-black text-primary-800 dark:text-primary-400 uppercase tracking-[0.3em] leading-none">
-                    <Search size={14} /> Global Discovery
+                    <Search size={14} /> {t('search.global_discovery')}
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-none flex flex-wrap items-end gap-x-4">
-                    SEARCH RESULTS <span className="text-primary-800 dark:text-primary-400 opacity-30 text-2xl md:text-3xl">/</span>
+                    {t('search.results_header')} <span className="text-primary-800 dark:text-primary-400 opacity-30 text-2xl md:text-3xl">/</span>
                     <span className="text-primary-800 dark:text-primary-200 uppercase truncate">"{query}"</span>
                 </h1>
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    Found {results.shops.length} shops and {results.products.length} products
+                    {t('search.found_counts', { shops: results.shops.length, products: results.products.length })}
                 </p>
             </div>
 
@@ -95,14 +97,14 @@ const SearchResults = () => {
                         <ShoppingBag size={40} />
                     </div>
                     <div className="space-y-2">
-                        <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">No results matched</h3>
-                        <p className="text-xs font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest leading-loose">We couldn't find anything matching your search. Try adjusting your query.</p>
+                        <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('search.no_results')}</h3>
+                        <p className="text-xs font-bold text-slate-400 max-w-xs mx-auto uppercase tracking-widest leading-loose">{t('search.no_results_msg')}</p>
                     </div>
                     <Button
                         onClick={() => navigate('/home')}
                         className="bg-primary-800 text-white px-10 py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary-900/20 active:scale-95 transition-all"
                     >
-                        Browse All Shops
+                        {t('search.browse_all')}
                     </Button>
                 </div>
             ) : (
@@ -112,7 +114,7 @@ const SearchResults = () => {
                         <div className="space-y-6">
                             <div className="flex items-center justify-between px-2">
                                 <h2 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.4em] flex items-center gap-3">
-                                    <Store size={16} className="text-primary-800" /> Matching Shops
+                                    <Store size={16} className="text-primary-800" /> {t('search.matching_shops')}
                                 </h2>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -137,12 +139,12 @@ const SearchResults = () => {
                                             <div className="p-4 space-y-3">
                                                 <div>
                                                     <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight group-hover:text-primary-800 transition-colors">{shop.storeName || shop.name}</h3>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Village Partner Hub • {shop.town}</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{t('search.village_hub')} • {shop.town}</p>
                                                 </div>
                                                 <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-800">
                                                     <span className="text-[10px] font-black text-primary-800 bg-primary-50 dark:bg-primary-900/30 px-2 py-1 rounded-lg uppercase tracking-widest">25-30 MIN</span>
                                                     <div className="flex items-center gap-1 text-slate-900 dark:text-white font-black text-xs">
-                                                        VIEW SHOP <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                                                        {t('search.view_shop')} <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -158,7 +160,7 @@ const SearchResults = () => {
                         <div className="space-y-6 pt-6">
                             <div className="flex items-center justify-between px-2">
                                 <h2 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.4em] flex items-center gap-3">
-                                    <Package size={16} className="text-primary-800" /> Catalog Matches
+                                    <Package size={16} className="text-primary-800" /> {t('search.catalog_matches')}
                                 </h2>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -186,7 +188,7 @@ const SearchResults = () => {
                                             <Button
                                                 className="mt-6 w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest rounded-xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-xl"
                                             >
-                                                VIEW IN SHOP <ArrowRight size={14} />
+                                                {t('search.view_in_shop')} <ArrowRight size={14} />
                                             </Button>
                                         </Card>
                                     </motion.div>

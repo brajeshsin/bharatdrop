@@ -18,6 +18,9 @@ import AdminZones from './pages/admin/Zones';
 import AdminPayments from './pages/admin/Payments';
 import AdminReports from './pages/admin/Reports';
 import AdminSettings from './pages/admin/Settings';
+import PaymentManagement from './pages/admin/PaymentManagement';
+import VendorDetail from './pages/admin/VendorDetail';
+import AddVendor from './pages/admin/AddVendor';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -63,6 +66,8 @@ function AppRoutes() {
         <Route path="orders" element={<AdminOrders />} />
         <Route path="orders/:id" element={<OrderDetail />} />
         <Route path="vendors" element={<AdminVendors />} />
+        <Route path="vendors/new" element={<AddVendor />} />
+        <Route path="vendors/:id" element={<VendorDetail />} />
         <Route path="customers" element={<AdminCustomers />} />
         <Route path="partners" element={<AdminPartners />} />
         <Route path="partners/:id" element={<PartnerDetails />} />
@@ -70,6 +75,7 @@ function AppRoutes() {
         <Route path="payments" element={<AdminPayments />} />
         <Route path="reports" element={<AdminReports />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="payment-methods" element={<PaymentManagement />} />
       </Route>
 
       {/* Default Redirect */}

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { SHOPS, PRODUCTS } from '../services/mockData';
+import { vendorService } from '../services/vendorService';
 
 const CartContext = createContext();
 
@@ -82,8 +83,62 @@ export const CartProvider = ({ children }) => {
         });
     };
 
+    const deleteFromCart = (productId, shopId) => {
+        setCart(prev => {
+            if (!prev[shopId]) return prev;
+
+            const newCart = { ...prev };
+            newCart[shopId] = { ...newCart[shopId] };
+            newCart[shopId].items = { ...newCart[shopId].items };
+
+            delete newCart[shopId].items[productId];
+
+            if (Object.keys(newCart[shopId].items).length === 0) {
+                delete newCart[shopId];
+            }
+            return newCart;
+        });
+    };
+
     const clearCart = () => {
         setCart({});
+    };
+
+    const refreshCart = async () => {
+        const shopIds = Object.keys(cart);
+        if (shopIds.length === 0) return;
+
+        const updatedCart = { ...cart };
+        let hasChanges = false;
+
+        for (const shopId of shopIds) {
+            const freshVendor = await vendorService.getVendorById(shopId);
+            if (!freshVendor) continue;
+
+            updatedCart[shopId] = { ...updatedCart[shopId] };
+            updatedCart[shopId].items = { ...updatedCart[shopId].items };
+
+            // Update items from this shop
+            Object.keys(updatedCart[shopId].items).forEach(productId => {
+                const item = updatedCart[shopId].items[productId];
+                const freshItem = freshVendor.items.find(i => i.name === item.name);
+
+                if (freshItem) {
+                    if (item.price !== freshItem.price || item.isOutOfStock !== freshItem.isOutOfStock) {
+                        updatedCart[shopId].items[productId] = {
+                            ...item,
+                            price: freshItem.price,
+                            isOutOfStock: freshItem.isOutOfStock
+                        };
+                        hasChanges = true;
+                    }
+                }
+            });
+        }
+
+        if (hasChanges) {
+            setCart(updatedCart);
+        }
     };
 
     const cartTotal = Object.values(cart).reduce((total, shopData) => {
@@ -97,7 +152,7 @@ export const CartProvider = ({ children }) => {
     }, 0);
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, cartTotal, itemCount }}>
+        <CartContext.Provider value={{ cart, addToCart, removeFromCart, deleteFromCart, clearCart, cartTotal, itemCount, refreshCart }}>
             {children}
         </CartContext.Provider>
     );

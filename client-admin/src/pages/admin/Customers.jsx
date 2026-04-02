@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Badge, Button } from '../../components/common';
+import { Card, Badge, Button, Select } from '../../components/common';
 import { adminService } from '../../services/adminService';
 import {
     Search, UserMinus, UserCheck, Phone, MapPin,
@@ -8,6 +8,12 @@ import {
 import { useLoading } from '../../context/LoadingContext';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+const PAGE_SIZE_OPTIONS = [
+    { label: '10 Per Page', value: 10 },
+    { label: '25 Per Page', value: 25 },
+    { label: '50 Per Page', value: 50 },
+    { label: '100 Per Page', value: 100 }
+];
 
 const CustomersPage = () => {
     const { setIsLoading } = useLoading();
@@ -70,18 +76,16 @@ const CustomersPage = () => {
                         }}
                     />
                 </div>
-                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block text-nowrap">Show Items</span>
-                    <select
-                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2 font-black text-[11px] uppercase outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 dark:text-slate-200"
+                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800 min-w-[160px]">
+                    <Select
+                        options={PAGE_SIZE_OPTIONS}
                         value={entriesPerPage}
-                        onChange={(e) => {
-                            setEntriesPerPage(Number(e.target.value));
+                        onChange={(val) => {
+                            setEntriesPerPage(Number(val));
                             setCurrentPage(1);
                         }}
-                    >
-                        {[10, 25, 50, 100].map(v => <option key={v} value={v}>{v} Per Page</option>)}
-                    </select>
+                        size="sm"
+                    />
                 </div>
                 {searchTerm && (
                     <button

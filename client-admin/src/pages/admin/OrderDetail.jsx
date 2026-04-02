@@ -96,13 +96,13 @@ const OrderDetail = () => {
                     </button>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Order #{order.orderId}</h2>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Order #{order.orderId || 'N/A'}</h2>
                             <Badge variant={getStatusVariant(order.status)} className="px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">
                                 {order.status}
                             </Badge>
                         </div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-                            Transaction ID: {order._id} • {new Date(order.createdAt).toLocaleString()}
+                            Transaction ID: {order._id} • {order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Date N/A'}
                         </p>
                     </div>
                 </div>
@@ -159,7 +159,7 @@ const OrderDetail = () => {
                     <Card className="border-none shadow-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
                         <div className="p-8 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
                             <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-sm italic">Items Purchased</h3>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{order.items.length} Product(s)</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{(order.items || []).length} Product(s)</span>
                         </div>
                         <div className="p-0">
                             <table className="w-full text-left">
@@ -172,7 +172,7 @@ const OrderDetail = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
-                                    {order.items.map((item, idx) => (
+                                    {(order.items || []).map((item, idx) => (
                                         <tr key={idx} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all font-medium">
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
@@ -180,16 +180,16 @@ const OrderDetail = () => {
                                                         <img src={item.image} alt="" className="w-full h-full object-cover rounded-xl" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-xs">{item.name}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Per Unit: ₹{item.price}</p>
+                                                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-xs">{item.name || 'Unnamed Product'}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Per Unit: ₹{item.price || 0}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-center">
-                                                <span className="font-black text-slate-900 dark:text-white text-xs">{item.quantity} {item.unit || 'units'}</span>
+                                                <span className="font-black text-slate-900 dark:text-white text-xs">{item.quantity || 0} {item.unit || 'units'}</span>
                                             </td>
-                                            <td className="px-8 py-6 text-right font-black text-slate-500 dark:text-slate-400 text-xs">₹{item.price}</td>
-                                            <td className="px-8 py-6 text-right font-black text-slate-900 dark:text-white text-sm">₹{item.price * item.quantity}</td>
+                                            <td className="px-8 py-6 text-right font-black text-slate-500 dark:text-slate-400 text-xs">₹{item.price || 0}</td>
+                                            <td className="px-8 py-6 text-right font-black text-slate-900 dark:text-white text-sm">₹{(item.price || 0) * (item.quantity || 0)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -199,7 +199,7 @@ const OrderDetail = () => {
                             <div className="w-full max-w-xs space-y-4">
                                 <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                     <span>Subtotal</span>
-                                    <span>₹{order.total}</span>
+                                    <span>₹{order.total || order.subtotal || 0}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                     <span>Platform Fee</span>
@@ -207,7 +207,7 @@ const OrderDetail = () => {
                                 </div>
                                 <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-end">
                                     <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest italic">Grand Total</span>
-                                    <span className="text-3xl font-black text-primary-800 dark:text-primary-400 italic tracking-tighter">₹{order.total.toLocaleString()}</span>
+                                    <span className="text-3xl font-black text-primary-800 dark:text-primary-400 italic tracking-tighter">₹{(order.total || 0).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -228,9 +228,9 @@ const OrderDetail = () => {
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-1">{order.customer.name}</p>
+                                    <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-1">{order.customer?.name || 'Unknown'}</p>
                                     <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
-                                        <Phone size={12} /> {order.customer.mobile}
+                                        <Phone size={12} /> {order.customer?.mobile || 'N/A'}
                                     </div>
                                 </div>
                                 <div className="pt-6 border-t border-slate-50 dark:border-slate-800 space-y-4">
@@ -239,7 +239,7 @@ const OrderDetail = () => {
                                         <div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Delivery Co-ordinates</p>
                                             <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 leading-relaxed uppercase tracking-wide">
-                                                {order.deliveryAddress.address}, {order.deliveryAddress.village} - {order.deliveryAddress.pincode}
+                                                {order.deliveryAddress?.address || 'No Address'}, {order.deliveryAddress?.village || ''} - {order.deliveryAddress?.pincode || ''}
                                             </p>
                                         </div>
                                     </div>
@@ -258,7 +258,7 @@ const OrderDetail = () => {
                                 </div>
                                 <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] text-[11px] italic">Merchant Profile</h4>
                             </div>
-                            <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-4">{order.vendor.name}</p>
+                            <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-4">{order.vendor?.name || 'Direct Shop'}</p>
                             <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-4 py-2 font-black text-[9px] uppercase tracking-widest">Premium Vendor</Badge>
                         </div>
                     </Card>

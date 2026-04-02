@@ -60,7 +60,10 @@ exports.updateOrderStatus = async (req, res) => {
 
         const order = await Order.findByIdAndUpdate(
             req.params.id,
-            { status },
+            {
+                status,
+                $push: { statusTimeline: { status, timestamp: new Date() } }
+            },
             { new: true }
         );
 

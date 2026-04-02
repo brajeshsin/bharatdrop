@@ -53,7 +53,9 @@ const vendorSchema = new mongoose.Schema({
         name: { type: String, required: true },
         price: { type: Number, required: true },
         image: { type: String },
-        unit: { type: String }
+        unit: { type: String },
+        stock: { type: Number, default: 99 },
+        isOutOfStock: { type: Boolean, default: false }
     }]
 }, { timestamps: true });
 

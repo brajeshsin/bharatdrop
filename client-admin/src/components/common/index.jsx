@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, ChevronDown } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'max-w-xl', showClose = true, className }) => {
     return (
@@ -177,5 +179,140 @@ export const Badge = ({ children, variant = 'default', className }) => {
         <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest', variants[variant], className)}>
             {children}
         </span>
+    );
+};
+
+
+
+export const Select = ({ label, options, value, onChange, className, placeholder = "Select option", size = "md" }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef(null);
+    const dropdownRef = useRef(null);
+    const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
+    const { theme } = useTheme();
+
+    const selectedOption = options.find(opt => (opt.value === value || opt === value));
+    const displayValue = selectedOption?.label || selectedOption || value || placeholder;
+
+    const sizes = {
+        sm: 'px-4 py-2.5 text-[10px]',
+        md: 'px-5 py-3.5 text-xs',
+        lg: 'px-6 py-4 text-sm font-bold',
+    };
+
+    const updateCoords = () => {
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const dropdownHeight = 240; // Max height of dropdown
+            const spaceBelow = window.innerHeight - rect.bottom;
+            let top = rect.bottom + 8;
+
+            if (spaceBelow < dropdownHeight && rect.top > dropdownHeight) {
+                top = rect.top - dropdownHeight - 8;
+            }
+
+            setCoords({
+                top: top,
+                left: rect.left,
+                width: rect.width
+            });
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            updateCoords();
+            window.addEventListener('scroll', updateCoords, true);
+            window.addEventListener('resize', updateCoords);
+        }
+        return () => {
+            window.removeEventListener('scroll', updateCoords, true);
+            window.removeEventListener('resize', updateCoords);
+        };
+    }, [isOpen]);
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isOpen && containerRef.current && !containerRef.current.contains(event.target) &&
+                dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen]);
+
+    const dropdownMenu = (
+        <AnimatePresence>
+            {isOpen && (
+                <div className={theme}>
+                    <motion.div
+                        ref={dropdownRef}
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        style={{
+                            position: 'fixed',
+                            top: coords.top,
+                            left: coords.left,
+                            width: coords.width,
+                            zIndex: 9999
+                        }}
+                        className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden p-2"
+                    >
+                        <div className="max-h-60 overflow-y-auto no-scrollbar">
+                            {options.map((option, idx) => {
+                                const optionValue = option.value !== undefined ? option.value : option;
+                                const optionLabel = option.label !== undefined ? option.label : option;
+                                const isSelected = optionValue === value;
+
+                                return (
+                                    <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => {
+                                            onChange(optionValue);
+                                            setIsOpen(false);
+                                        }}
+                                        className={cn(
+                                            "w-full text-left px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200",
+                                            isSelected
+                                                ? "bg-primary-600 text-white shadow-lg shadow-primary-600/20"
+                                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                                        )}
+                                    >
+                                        {optionLabel}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+
+    return (
+        <div className={cn("w-full space-y-1.5 relative", className)} ref={containerRef}>
+            {label && <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">{label}</label>}
+            <div className="relative">
+                <button
+                    type="button"
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={cn(
+                        "w-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-left flex items-center justify-between group transition-all hover:border-primary-500 dark:hover:border-primary-800 shadow-sm",
+                        sizes[size]
+                    )}
+                >
+                    <span className="font-black uppercase tracking-tight text-slate-900 dark:text-white truncate pr-2">{displayValue}</span>
+                    <motion.div animate={{ rotate: isOpen ? 180 : 0 }}>
+                        <ChevronDown size={size === 'sm' ? 14 : 18} className="text-slate-400 group-hover:text-primary-500" />
+                    </motion.div>
+                </button>
+
+                {typeof document !== 'undefined' && createPortal(dropdownMenu, document.body)}
+            </div>
+        </div>
     );
 };

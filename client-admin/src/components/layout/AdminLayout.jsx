@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Package, Store, Users, Bike, MapPin,
     CreditCard, BarChart3, Settings, Menu, X, Search, Bell,
-    LogOut, User, ChevronLeft, ChevronRight, Sun, Moon
+    LogOut, User, ChevronLeft, ChevronRight, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -26,6 +26,7 @@ const AdminLayout = ({ children }) => {
         { label: 'Partners', path: '/admin/partners', icon: Bike },
         { label: 'Zones', path: '/admin/zones', icon: MapPin },
         { label: 'Payments', path: '/admin/payments', icon: CreditCard },
+        { label: 'Payment Methods', path: '/admin/payment-methods', icon: ShieldCheck },
         { label: 'Reports', path: '/admin/reports', icon: BarChart3 },
         { label: 'Settings', path: '/admin/settings', icon: Settings },
     ];

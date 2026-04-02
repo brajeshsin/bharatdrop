@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '../../context/CartContext';
 import { ArrowLeft, Search, ShoppingCart, Plus, Minus, ArrowRight } from 'lucide-react';
 import { Button, Badge } from '../../components/common';
@@ -7,6 +8,7 @@ import { vendorService } from '../../services/vendorService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
+    const { t } = useTranslation();
     const [imageError, setImageError] = useState(false);
 
     return (
@@ -39,7 +41,7 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                 <h3 className="font-black text-slate-800 dark:text-white text-base leading-tight uppercase tracking-tight line-clamp-2 h-10 mb-2">{product.name}</h3>
                 <div className="mt-auto pt-4 flex items-end justify-between gap-2">
                     <div className="space-y-0.5">
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Price</p>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">{t('shop.price')}</p>
                         <p className="text-2xl font-black text-primary-800 dark:text-primary-400 leading-none flex items-baseline gap-1">₹{product.price}{product.unit && <span className="text-[10px] opacity-60 font-bold uppercase tracking-widest">/ {product.unit}</span>}</p>
                     </div>
                     <div className="shrink-0">
@@ -55,7 +57,7 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                             </div>
                         ) : (
                             <button onClick={() => addToCart(product)} className="h-12 px-6 bg-primary-800 text-white rounded-2xl font-black shadow-lg hover:bg-primary-900 active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                <Plus size={14} strokeWidth={3} /> ADD
+                                <Plus size={14} strokeWidth={3} /> {t('shop.add')}
                             </button>
                         )}
                     </div>
@@ -68,6 +70,7 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
 const AllProducts = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [shop, setShop] = useState(() => {
         const savedShop = localStorage.getItem('bd_last_shop');
         return savedShop ? JSON.parse(savedShop) : null;
@@ -115,7 +118,7 @@ const AllProducts = () => {
         p.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    if (!shop) return <div className="p-10 text-center font-black text-slate-400 uppercase tracking-widest">Loading bazaar...</div>;
+    if (!shop) return <div className="p-10 text-center font-black text-slate-400 uppercase tracking-widest">{t('shop.loading_bazaar')}</div>;
 
     return (
         <div className="w-full space-y-12 animate-fade-in relative pb-32">
@@ -133,7 +136,7 @@ const AllProducts = () => {
                             <Badge className="bg-primary-50 dark:bg-primary-900/30 text-primary-800 dark:text-primary-400 border-none font-black px-2 py-0.5 text-[8px] uppercase tracking-[0.2em]">{shop.category}</Badge>
                         </div>
                         <h1 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">
-                            All Products <span className="text-primary-800">@{shop.storeName || shop.name}</span>
+                            {t('shop.all_products')} <span className="text-primary-800">@{shop.storeName || shop.name}</span>
                         </h1>
                     </div>
                 </div>
@@ -142,7 +145,7 @@ const AllProducts = () => {
                     <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-800 transition-colors" />
                     <input
                         type="text"
-                        placeholder="Search items..."
+                        placeholder={t('shop.search_items')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 transition-all shadow-inner"
@@ -153,7 +156,7 @@ const AllProducts = () => {
             {/* Grid */}
             <div className="space-y-8">
                 <div className="flex items-center justify-between px-4">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Showing {filteredProducts.length} Results</p>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">{t('shop.showing_results', { count: filteredProducts.length })}</p>
                     <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800 mx-8"></div>
                 </div>
 
@@ -172,7 +175,7 @@ const AllProducts = () => {
                     </div>
                 ) : (
                     <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800">
-                        <p className="font-black text-slate-400 uppercase tracking-widest">No products found for your search.</p>
+                        <p className="font-black text-slate-400 uppercase tracking-widest">{t('shop.no_products_found')}</p>
                     </div>
                 )}
             </div>

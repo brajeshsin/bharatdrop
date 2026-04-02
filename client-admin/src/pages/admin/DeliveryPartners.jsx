@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, Badge, Button } from '../../components/common';
+import { Card, Badge, Button, Select } from '../../components/common';
 import {
     Bike, Phone, TrendingUp, Eye, Search,
     ChevronLeft, ChevronRight, RotateCcw, Trash2
@@ -9,6 +9,18 @@ import { useLoading } from '../../context/LoadingContext';
 import { motion } from 'framer-motion';
 import { adminService } from '../../services/adminService';
 import { toast } from 'react-hot-toast';
+const STATUS_OPTIONS = [
+    { label: 'All Status', value: 'ALL' },
+    { label: 'Online', value: 'Online' },
+    { label: 'Offline', value: 'Offline' }
+];
+
+const PAGE_SIZE_OPTIONS = [
+    { label: '5 Per Page', value: 5 },
+    { label: '10 Per Page', value: 10 },
+    { label: '25 Per Page', value: 25 },
+    { label: '50 Per Page', value: 50 }
+];
 
 const DeliveryPartners = () => {
     const navigate = useNavigate();
@@ -80,27 +92,21 @@ const DeliveryPartners = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block">Filter</span>
-                    <select
-                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2 font-black text-[11px] uppercase outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 dark:text-slate-200"
+                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800 min-w-[140px]">
+                    <Select
+                        options={STATUS_OPTIONS}
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Status</option>
-                        <option value="Online">Online</option>
-                        <option value="Offline">Offline</option>
-                    </select>
+                        onChange={(val) => setStatusFilter(val)}
+                        size="sm"
+                    />
                 </div>
-                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:block">Display</span>
-                    <select
-                        className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2 font-black text-[11px] uppercase outline-none focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 dark:text-slate-200"
+                <div className="flex items-center gap-3 pl-4 border-l-2 border-slate-50 dark:border-slate-800 min-w-[140px]">
+                    <Select
+                        options={PAGE_SIZE_OPTIONS}
                         value={entriesPerPage}
-                        onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-                    >
-                        {[5, 10, 25, 50].map(v => <option key={v} value={v}>{v} Per Page</option>)}
-                    </select>
+                        onChange={(val) => setEntriesPerPage(Number(val))}
+                        size="sm"
+                    />
                 </div>
                 {(searchTerm || statusFilter !== 'ALL') && (
                     <button

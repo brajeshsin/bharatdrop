@@ -45,5 +45,16 @@ export const orderService = {
             console.error('Error fetching order details:', error);
             throw error;
         }
+    },
+    getPaymentMethods: async () => {
+        try {
+            const response = await fetch(`http://localhost:5000/api/payments`, {
+                headers: getHeaders()
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching payment methods:', error);
+            throw error;
+        }
     }
 };

@@ -112,6 +112,21 @@ export const adminService = {
             return { data: [], pagination: {} };
         }
     },
+    getVendorById: async (id) => {
+        try {
+            const token = localStorage.getItem('vdp_token');
+            const response = await fetch(`http://localhost:6060/api/vendors/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            return data.success ? data.data : null;
+        } catch (error) {
+            console.error('Error fetching vendor:', error);
+            return null;
+        }
+    },
     getCustomers: async (params = {}) => {
         try {
             const { page = 1, limit = 10, search = '' } = params;
@@ -200,4 +215,48 @@ export const adminService = {
         resolve(DELIVERY_PARTNERS.find(p => p.id === Number(id)));
     }, 500)),
     getZones: () => new Promise(resolve => setTimeout(() => resolve(ZONES), 500)),
+    getPaymentMethods: async () => {
+        try {
+            const token = localStorage.getItem('vdp_token');
+            const response = await fetch(`http://localhost:6060/api/payments`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching payment methods:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
+    togglePaymentMethod: async (id) => {
+        try {
+            const token = localStorage.getItem('vdp_token');
+            const response = await fetch(`http://localhost:6060/api/payments/${id}/toggle`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error toggling payment method:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
+    toggleItemStock: async (vendorId, itemName) => {
+        try {
+            const token = localStorage.getItem('vdp_token');
+            const response = await fetch(`http://localhost:6060/api/vendors/${vendorId}/items/${itemName}/toggle-stock`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error toggling item stock:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
 };

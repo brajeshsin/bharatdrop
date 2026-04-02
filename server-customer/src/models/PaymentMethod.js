@@ -1,0 +1,25 @@
+const mongoose = require('mongoose');
+
+const paymentMethodSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    code: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    description: {
+        type: String
+    },
+    isEnabled: {
+        type: Boolean,
+        default: true
+    }
+}, {
+    timestamps: true
+});
+
+module.exports = paymentMethodSchema;

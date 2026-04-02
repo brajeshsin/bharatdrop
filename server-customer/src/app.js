@@ -6,6 +6,7 @@ const adRoutes = require('./routes/adRoutes');
 const vendorRoutes = require('./routes/vendorRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Connect to Database
 connectDB();
@@ -26,6 +27,7 @@ app.use('/api/ads', adRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
