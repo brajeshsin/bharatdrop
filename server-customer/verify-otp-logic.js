@@ -11,7 +11,7 @@ async function testOtp() {
         console.log('--- Step 1: Requesting OTP ---');
         // Note: This will fail to send email if SMTP is not configured, but should still reach the point in controller.
         // We expect "Failed to send OTP email" if SMTP is wrong, which confirms the logic before it.
-        const requestRes = await axios.post('http://localhost:5000/api/auth/request-otp', {
+        const requestRes = await api.post('/auth/request-otp', {
             email,
             mobile,
             name
