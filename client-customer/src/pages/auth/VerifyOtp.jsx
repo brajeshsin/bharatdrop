@@ -6,6 +6,7 @@ import { ArrowRight, ShieldCheck, Sun, Moon, Star, MapPin, Shield, Globe } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLoading } from '../../context/LoadingContext';
 import { useTheme } from '../../context/ThemeContext';
+import { toast } from 'react-hot-toast';
 
 const VerifyOtp = () => {
     const { verifyOtp } = useAuth();
@@ -34,7 +35,10 @@ const VerifyOtp = () => {
 
         if (!result.success) {
             setError(result.message);
+            toast.error(result.message);
             setIsSubmitting(false);
+        } else {
+            toast.success("Welcome to BharatDrop!");
         }
     };
 

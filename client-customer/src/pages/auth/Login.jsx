@@ -6,6 +6,7 @@ import { ArrowRight, Star, MapPin, Shield, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useLoading } from '../../context/LoadingContext';
 import { useTheme } from '../../context/ThemeContext';
+import { toast } from 'react-hot-toast';
 
 const Login = () => {
     const { requestOtp } = useAuth();
@@ -46,13 +47,18 @@ const Login = () => {
         );
 
         if (result.success) {
+            toast.success("OTP sent successfully!");
             navigate('/verify', { state: { email: formData.email, mobile: formData.mobile, isLogin } });
         } else {
             if (result.code === 'USER_EXISTS') {
-                setError(result.message);
+                toast.error(result.message, {
+                    duration: 5000,
+                    icon: '🚀'
+                });
                 setIsLogin(true); // Switch to login mode automatically
             } else {
                 setError(result.message);
+                toast.error(result.message);
             }
             setIsSubmitting(false);
         }

@@ -113,3 +113,8 @@ html.lenis {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* Custom Premium Toast */
+.premium-toast {
+  @apply bg-white text-slate-900 border-2 border-slate-100 shadow-2xl rounded-2xl font-black text-[11px] uppercase tracking-widest px-6 py-4 dark:bg-slate-900 dark:text-white dark:border-slate-800 !important;
+}
