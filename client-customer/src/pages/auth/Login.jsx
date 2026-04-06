@@ -12,6 +12,7 @@ const Login = () => {
     const { setIsLoading } = useLoading();
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
+    const [isLogin, setIsLogin] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -23,18 +24,35 @@ const Login = () => {
         e.preventDefault();
         setError("");
 
-        if (!formData.email || !formData.mobile || !formData.name) {
-            setError("All fields are required");
-            return;
+        if (isLogin) {
+            if (!formData.mobile) {
+                setError("Mobile number is required");
+                return;
+            }
+        } else {
+            if (!formData.email || !formData.mobile || !formData.name) {
+                setError("All fields are required for registration");
+                return;
+            }
         }
 
         setIsLoading(true);
-        const result = await requestOtp(formData.email, formData.mobile, formData.name);
+        // Call requestOtp with name/email only if NOT in login mode
+        const result = await requestOtp(
+            isLogin ? null : formData.email,
+            formData.mobile,
+            isLogin ? null : formData.name
+        );
 
         if (result.success) {
-            navigate('/verify', { state: { email: formData.email, mobile: formData.mobile } });
+            navigate('/verify', { state: { email: formData.email, mobile: formData.mobile, isLogin } });
         } else {
-            setError(result.message);
+            if (result.code === 'USER_EXISTS') {
+                setError(result.message);
+                setIsLogin(true); // Switch to login mode automatically
+            } else {
+                setError(result.message);
+            }
         }
         setIsLoading(false);
     };
@@ -83,7 +101,7 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* Right Section - Login Form */}
+            {/* Right Section - Login/Register Form */}
             <div className="flex-1 flex flex-col items-center justify-center p-6 relative bg-white dark:bg-slate-900 transition-colors duration-500 overflow-hidden">
                 {/* Decorative Background Pattern */}
                 <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232E7D32' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2v-4h4v-2H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
@@ -107,29 +125,38 @@ const Login = () => {
                     >
                         <div className="space-y-3 relative z-10">
                             <div className="w-12 h-1.5 bg-primary-800 dark:bg-primary-500 rounded-full mb-6"></div>
-                            <h2 className="text-4xl font-black text-slate-800 dark:text-white leading-[0.9] tracking-tighter">GET<br /><span className="text-primary-800 dark:text-primary-400">STARTED</span></h2>
-                            <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest uppercase text-left">Enter your details to receive an OTP</p>
+                            <h2 className="text-4xl font-black text-slate-800 dark:text-white leading-[0.9] tracking-tighter">
+                                {isLogin ? 'WELCOME' : 'GET'}<br />
+                                <span className="text-primary-800 dark:text-primary-400">{isLogin ? 'BACK' : 'STARTED'}</span>
+                            </h2>
+                            <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest uppercase text-left">
+                                {isLogin ? 'Enter mobile to login' : 'Enter details to register'}
+                            </p>
                         </div>
 
                         <form onSubmit={handleSendOtp} className="space-y-4">
                             <div className="space-y-3">
-                                <Input
-                                    label="Full Name"
-                                    placeholder="John Doe"
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="h-12 text-lg font-black"
-                                    autoFocus
-                                />
-                                <Input
-                                    label="Email Address"
-                                    placeholder="john@example.com"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="h-12 text-lg font-black"
-                                />
+                                {!isLogin && (
+                                    <>
+                                        <Input
+                                            label="Full Name"
+                                            placeholder="John Doe"
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="h-12 text-lg font-black"
+                                            autoFocus
+                                        />
+                                        <Input
+                                            label="Email Address"
+                                            placeholder="john@example.com"
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="h-12 text-lg font-black"
+                                        />
+                                    </>
+                                )}
                                 <Input
                                     label="Mobile Number"
                                     placeholder="10 Digits"
@@ -138,6 +165,7 @@ const Login = () => {
                                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                                     maxLength={10}
                                     className="h-12 text-lg font-black"
+                                    autoFocus={isLogin}
                                 />
                             </div>
 
@@ -146,6 +174,19 @@ const Login = () => {
                             <Button className="w-full py-6 text-xl font-black shadow-xl shadow-primary-900/20" type="submit">
                                 SEND OTP <ArrowRight size={24} className="ml-3" />
                             </Button>
+
+                            <div className="text-center pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsLogin(!isLogin);
+                                        setError("");
+                                    }}
+                                    className="text-[10px] font-black text-slate-400 hover:text-primary-800 uppercase tracking-widest transition-colors"
+                                >
+                                    {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+                                </button>
+                            </div>
                         </form>
                     </motion.div>
                 </div>

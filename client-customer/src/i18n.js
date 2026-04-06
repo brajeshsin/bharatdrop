@@ -100,7 +100,7 @@ const resources = {
                 filter_active: 'ACTIVE',
                 filter_completed: 'COMPLETED',
                 filter_cancelled: 'CANCELLED',
-                syncing: 'Syncing with Bazaar...',
+                syncing: 'Loading...',
                 items_label: 'Ordered Items',
                 total_paid: 'Total Paid',
                 track_order: 'Track Order',

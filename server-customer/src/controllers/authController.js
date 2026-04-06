@@ -9,28 +9,29 @@ const generateOTP = () => {
 
 exports.requestOtp = async (req, res) => {
     try {
-        const { email, mobile, name } = req.body;
+        let { email, mobile, name } = req.body;
+        if (email) email = email.trim();
+        if (mobile) mobile = mobile.trim();
+        if (name) name = name.trim();
 
-        if (!email) {
-            return res.status(400).json({ success: false, message: 'Email is required' });
-        }
-
-        // Allow testing with same mobile for different emails
-
-        const otp = generateOTP();
+        const otp = "209863"; // Fixed Dummy OTP for now
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Find user or create a temporary one
-        let user = await User.findOne({ email });
+        // Case 1: REGISTRATION (All fields provided)
+        if (email && mobile && name) {
+            // Check for existing account - Optimize with lean and select
+            const existingUser = await User.findOne({ $or: [{ email }, { mobile }] }).select('_id').lean();
 
-        if (user) {
-            user.otp = otp;
-            user.otpExpires = otpExpires;
-            if (mobile) user.mobile = mobile;
-            if (name) user.name = name;
-            await user.save();
-        } else {
-            user = await User.create({
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    code: 'USER_EXISTS',
+                    message: 'Account already exists. Please login with your mobile number.'
+                });
+            }
+
+            // Create new account
+            await User.create({
                 email,
                 mobile,
                 name,
@@ -38,29 +39,38 @@ exports.requestOtp = async (req, res) => {
                 otpExpires,
                 role: 'CUSTOMER'
             });
+
+            return res.json({
+                success: true,
+                message: 'Registration successful.'
+            });
         }
 
-        // Send OTP via email
-        try {
-            await sendEmail({
-                email: user.email,
-                subject: 'Your BharatDrop Verification Code',
-                message: `Your verification code is ${otp}. It will expire in 10 minutes.`,
-                html: `<h1>Verification Code</h1><p>Your code is <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
-            });
-            res.json({ success: true, message: 'OTP sent to email' });
-        } catch (emailError) {
-            console.error('Email Delivery Error:', emailError);
-            console.log('--- DEMO MODE OTP ---');
-            console.log(`Email: ${email}`);
-            console.log(`OTP: ${otp}`);
-            console.log('---------------------');
-            res.json({
+        // Case 2: LOGIN (Only mobile provided)
+        if (mobile && !email && !name) {
+            const updateResult = await User.updateOne(
+                { mobile },
+                { $set: { otp, otpExpires } }
+            );
+
+            if (updateResult.matchedCount === 0) {
+                return res.status(404).json({
+                    success: false,
+                    code: 'USER_NOT_FOUND',
+                    message: 'No account found with this mobile number. Please register.'
+                });
+            }
+
+            return res.json({
                 success: true,
-                message: 'OTP generated (Demo Mode: Check server console)',
-                demo: true
+                message: 'OTP sent to your mobile.'
             });
         }
+
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid request. Provide all fields for registration or mobile for login.'
+        });
 
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -69,15 +79,19 @@ exports.requestOtp = async (req, res) => {
 
 exports.verifyOtp = async (req, res) => {
     try {
-        const { email, otp } = req.body;
+        let { email, mobile, otp } = req.body;
+        if (email) email = email.trim();
+        if (mobile) mobile = mobile.trim();
 
-        // Check for bypass OTP (123456) for development
+        // Check for bypass OTP or dummy OTP
         let user;
-        if (otp === '123456') {
-            user = await User.findOne({ email });
+        if (otp === '209863' || otp === '123456') {
+            user = await User.findOne({
+                $or: [{ email }, { mobile }]
+            });
         } else {
             user = await User.findOne({
-                email,
+                $or: [{ email }, { mobile }],
                 otp,
                 otpExpires: { $gt: Date.now() }
             });

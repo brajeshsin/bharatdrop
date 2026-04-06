@@ -8,9 +8,6 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 
-// Connect to Database
-connectDB();
-
 const app = express();
 
 // Middleware

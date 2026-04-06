@@ -54,21 +54,18 @@ export const AuthProvider = ({ children }) => {
     };
 
     const requestOtp = async (email, mobile, name) => {
-        setLoading(true);
         try {
             const response = await api.post('/auth/request-otp', { email, mobile, name });
             return response.data;
         } catch (error) {
             return { success: false, message: error.response?.data?.message || 'Server connection failed' };
-        } finally {
-            setLoading(false);
         }
     };
 
-    const verifyOtp = async (email, otp) => {
+    const verifyOtp = async (email, otp, mobile) => {
         setLoading(true);
         try {
-            const response = await api.post('/auth/verify-otp', { email, otp });
+            const response = await api.post('/auth/verify-otp', { email, otp, mobile });
             const data = response.data;
 
             if (data.success) {

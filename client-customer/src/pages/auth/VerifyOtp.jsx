@@ -14,22 +14,22 @@ const VerifyOtp = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const { email } = location.state || {};
+    const { email, mobile, isLogin } = location.state || {};
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (!email) {
+        if (!email && !mobile) {
             navigate('/login');
         }
-    }, [email, navigate]);
+    }, [email, mobile, navigate]);
 
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         setError("");
         setIsLoading(true);
 
-        const result = await verifyOtp(email, otp);
+        const result = await verifyOtp(email, otp, mobile);
 
         if (!result.success) {
             setError(result.message);
@@ -106,7 +106,9 @@ const VerifyOtp = () => {
                         <div className="space-y-3 relative z-10">
                             <div className="w-12 h-1.5 bg-secondary rounded-full mb-6"></div>
                             <h2 className="text-4xl font-black text-slate-800 dark:text-white leading-[0.9] tracking-tighter">VERIFY<br /><span className="text-secondary">OTP</span></h2>
-                            <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest uppercase text-left italic">Check your email: {email}</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest uppercase text-left italic">
+                                {isLogin ? `Mobile: ${mobile}` : `Email: ${email}`}
+                            </p>
                         </div>
 
                         <form onSubmit={handleVerifyOtp} className="space-y-6">
@@ -123,9 +125,12 @@ const VerifyOtp = () => {
                                 />
                                 <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-2xl border-2 border-primary-100 dark:border-primary-900 flex gap-4">
                                     <ShieldCheck className="text-primary-800 dark:text-primary-400 shrink-0 mt-0.5" size={24} />
-                                    <p className="text-[10px] font-black text-primary-900 dark:text-primary-200 leading-relaxed uppercase tracking-widest text-left">
-                                        We've sent a 6-digit code to your email. Check your spam folder if you don't see it.
-                                    </p>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-primary-900 dark:text-primary-200 leading-relaxed uppercase tracking-widest text-left">
+                                            Enter the 6-digit code. For testing use:
+                                        </p>
+                                        <p className="text-lg font-black text-primary-800 dark:text-primary-400 tracking-[0.2em]">209863</p>
+                                    </div>
                                 </div>
                             </div>
 
