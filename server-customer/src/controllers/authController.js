@@ -2,11 +2,6 @@ const User = require('../models/User');
 const sendEmail = require('../utils/emailService');
 const jwt = require('jsonwebtoken');
 
-// Generate 6-digit OTP
-const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
 exports.requestOtp = async (req, res) => {
     try {
         let { email, mobile, name } = req.body;
@@ -14,13 +9,16 @@ exports.requestOtp = async (req, res) => {
         if (mobile) mobile = mobile.trim();
         if (name) name = name.trim();
 
-        const otp = "209863"; // Fixed Dummy OTP for now
+        const otp = "209863"; // Fixed Dummy OTP
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
         // Case 1: REGISTRATION (All fields provided)
         if (email && mobile && name) {
-            // Check for existing account - Optimize with lean and select
-            const existingUser = await User.findOne({ $or: [{ email }, { mobile }] }).select('_id').lean();
+            // DIRECT MONGO QUERY - Faster than Mongoose findOne
+            const existingUser = await User.collection.findOne(
+                { $or: [{ email }, { mobile }] },
+                { projection: { _id: 1 } }
+            );
 
             if (existingUser) {
                 return res.status(400).json({
@@ -30,14 +28,16 @@ exports.requestOtp = async (req, res) => {
                 });
             }
 
-            // Create new account
-            await User.create({
+            // DIRECT MONGO INSERT - Faster than User.create
+            await User.collection.insertOne({
                 email,
                 mobile,
                 name,
                 otp,
                 otpExpires,
-                role: 'CUSTOMER'
+                role: 'CUSTOMER',
+                createdAt: new Date(),
+                updatedAt: new Date()
             });
 
             return res.json({
@@ -48,9 +48,10 @@ exports.requestOtp = async (req, res) => {
 
         // Case 2: LOGIN (Only mobile provided)
         if (mobile && !email && !name) {
-            const updateResult = await User.updateOne(
+            // DIRECT MONGO UPDATE
+            const updateResult = await User.collection.updateOne(
                 { mobile },
-                { $set: { otp, otpExpires } }
+                { $set: { otp, otpExpires, updatedAt: new Date() } }
             );
 
             if (updateResult.matchedCount === 0) {
@@ -69,7 +70,7 @@ exports.requestOtp = async (req, res) => {
 
         return res.status(400).json({
             success: false,
-            message: 'Invalid request. Provide all fields for registration or mobile for login.'
+            message: 'Invalid request.'
         });
 
     } catch (error) {

@@ -19,6 +19,7 @@ const Login = () => {
         mobile: ""
     });
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSendOtp = async (e) => {
         e.preventDefault();
@@ -36,7 +37,7 @@ const Login = () => {
             }
         }
 
-        setIsLoading(true);
+        setIsSubmitting(true);
         // Call requestOtp with name/email only if NOT in login mode
         const result = await requestOtp(
             isLogin ? null : formData.email,
@@ -53,8 +54,8 @@ const Login = () => {
             } else {
                 setError(result.message);
             }
+            setIsSubmitting(false);
         }
-        setIsLoading(false);
     };
 
     return (
@@ -171,7 +172,11 @@ const Login = () => {
 
                             {error && <p className="text-red-500 font-black text-[10px] uppercase tracking-widest">{error}</p>}
 
-                            <Button className="w-full py-6 text-xl font-black shadow-xl shadow-primary-900/20" type="submit">
+                            <Button
+                                className="w-full py-6 text-xl font-black shadow-xl shadow-primary-900/20"
+                                type="submit"
+                                loading={isSubmitting}
+                            >
                                 SEND OTP <ArrowRight size={24} className="ml-3" />
                             </Button>
 

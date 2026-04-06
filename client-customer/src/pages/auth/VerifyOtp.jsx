@@ -17,6 +17,7 @@ const VerifyOtp = () => {
     const { email, mobile, isLogin } = location.state || {};
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!email && !mobile) {
@@ -27,14 +28,14 @@ const VerifyOtp = () => {
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         setError("");
-        setIsLoading(true);
+        setIsSubmitting(true);
 
         const result = await verifyOtp(email, otp, mobile);
 
         if (!result.success) {
             setError(result.message);
+            setIsSubmitting(false);
         }
-        setIsLoading(false);
     };
 
     return (
@@ -136,7 +137,12 @@ const VerifyOtp = () => {
 
                             {error && <p className="text-red-500 font-black text-[10px] uppercase tracking-widest text-center">{error}</p>}
 
-                            <Button className="w-full py-6 text-xl font-black shadow-xl" type="submit" disabled={otp.length < 6}>
+                            <Button
+                                className="w-full py-6 text-xl font-black shadow-xl"
+                                type="submit"
+                                disabled={otp.length < 6}
+                                loading={isSubmitting}
+                            >
                                 VERIFY & ENTER <ArrowRight size={24} className="ml-3" />
                             </Button>
 
