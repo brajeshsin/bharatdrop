@@ -8,11 +8,12 @@ import {
     ArrowLeft, ArrowRight, Bell, ChevronDown, MapPin,
     LogOut, Settings, LayoutDashboard, Globe,
     ChevronRight, X, Truck, Phone, Mail,
-    MessageSquare, Send
+    MessageSquare, Send, Sun, Moon
 } from 'lucide-react';
 import { Button } from '../../components/common';
 import { SHOPS, PRODUCTS } from '../../services/mockData';
 import { useCart } from '../../context/CartContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const MainLayout = () => {
     const { user, logout } = useAuth();
@@ -21,6 +22,7 @@ const MainLayout = () => {
     const { id: paramsId } = useParams();
     const { cart, cartTotal, itemCount } = useCart();
     const { t, i18n } = useTranslation();
+    const { theme, toggleTheme } = useTheme();
 
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng);
@@ -233,6 +235,19 @@ const MainLayout = () => {
                         <button className="hidden sm:flex p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all relative">
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                        </button>
+
+                        {/* Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all group/theme"
+                            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                        >
+                            {theme === 'dark' ? (
+                                <Sun size={20} className="group-hover/theme:rotate-90 transition-transform duration-500" />
+                            ) : (
+                                <Moon size={20} className="group-hover/theme:-rotate-12 transition-transform duration-500" />
+                            )}
                         </button>
 
                         {/* Global Search Button for Mobile */}

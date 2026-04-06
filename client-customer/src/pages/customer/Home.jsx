@@ -23,9 +23,9 @@ const CategoryItem = ({ cat, i, selectedCategory, setSelectedCategory }) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.05 }}
             onClick={() => setSelectedCategory(cat.name)}
-            className="group flex-shrink-0 flex flex-col items-center gap-3"
+            className="group flex flex-col items-center gap-3"
         >
-            <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 transition-all duration-300 ${selectedCategory === cat.name ? 'border-primary-800 scale-110 shadow-xl' : 'border-white dark:border-slate-800 shadow-sm hover:border-primary-200'}`}>
+            <div className={`w-16 h-16 xs:w-20 xs:h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 transition-all duration-300 ${selectedCategory === cat.name ? 'border-primary-800 scale-110 shadow-xl' : 'border-white dark:border-slate-800 shadow-sm hover:border-primary-200'}`}>
                 {imageError ? (
                     <div className={cn("w-full h-full flex items-center justify-center text-3xl font-black uppercase", cat.color || "bg-slate-100 text-slate-400")}>
                         {cat.name[0]}
@@ -163,7 +163,7 @@ const CustomerHome = () => {
                             {t('home.explore_all')} <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
-                    <div className="flex gap-6 md:gap-10 overflow-x-auto pb-4 pt-4 no-scrollbar">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-x-3 xs:gap-x-4 md:gap-x-10 gap-y-10 pb-4 pt-4">
                         {categories.map((cat, i) => (
                             <CategoryItem
                                 key={cat.name}
@@ -183,7 +183,7 @@ const CustomerHome = () => {
                             <h2 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">{t('home.top_shops')}</h2>
                             <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">{t('home.verified_partners')}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 gap-y-3">
                             {["Ratings 4.5+", "Under 20 Mins", "Hot Deals"].map(filter => (
                                 <button key={filter} className="px-5 py-2.5 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-primary-800 transition-colors dark:text-white">
                                     {filter}

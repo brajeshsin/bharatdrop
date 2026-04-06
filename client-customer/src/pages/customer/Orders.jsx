@@ -124,7 +124,7 @@ const Orders = () => {
                 </div>
 
                 {/* Clean Status Tabs */}
-                <div className="flex items-center gap-3 overflow-x-auto pb-2 no-scrollbar">
+                <div className="flex items-center gap-3 overflow-hidden pb-2 no-scrollbar">
                     {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((tab) => (
                         <button
                             key={tab}
