@@ -15,16 +15,28 @@ exports.requestOtp = async (req, res) => {
         // Case 1: REGISTRATION (All fields provided)
         if (email && mobile && name) {
             // DIRECT MONGO QUERY - Faster than Mongoose findOne
-            const existingUser = await User.collection.findOne(
+            const conflicts = await User.collection.find(
                 { $or: [{ email }, { mobile }] },
-                { projection: { _id: 1 } }
-            );
+                { projection: { _id: 1, email: 1, mobile: 1 } }
+            ).toArray();
 
-            if (existingUser) {
+            if (conflicts.length > 0) {
+                const mobileTaken = conflicts.some(u => u.mobile === mobile);
+                const emailTaken = conflicts.some(u => u.email === email);
+
+                let message = "";
+                if (mobileTaken && emailTaken) {
+                    message = "Both Mobile and Email are already registered.";
+                } else if (mobileTaken) {
+                    message = "Mobile number is already registered.";
+                } else {
+                    message = "Email address is already registered.";
+                }
+
                 return res.status(400).json({
                     success: false,
                     code: 'USER_EXISTS',
-                    message: 'Account already exists. Please login with your mobile number.'
+                    message: `${message} Please login with your mobile number.`
                 });
             }
 
