@@ -22,6 +22,7 @@ exports.createOrder = async (req, res) => {
         const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
 
         const createdOrders = [];
+        const groupId = `TRANS-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
         for (const shop of shops) {
             // Fetch latest vendor data to verify prices and stock
@@ -85,6 +86,7 @@ exports.createOrder = async (req, res) => {
 
             const newOrder = new Order({
                 orderId,
+                groupId,
                 customer: {
                     id: user._id,
                     name: user.name,

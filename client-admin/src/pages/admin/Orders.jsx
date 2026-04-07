@@ -53,20 +53,70 @@ const OrdersPage = () => {
         const customerName = order.customer?.name || '';
         const vendorName = order.vendor?.name || '';
         const orderId = order.orderId || '';
+        const groupId = order.groupId || '';
 
         const matchesSearch =
             orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            groupId.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             vendorName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
 
+    // Grouping Logic
+    const groupedOrders = filteredOrders.reduce((acc, order) => {
+        // Use groupId if available, otherwise fallback to customerId + date window
+        const customerId = order.customer?.id || 'UNKNOWN';
+        const createdAt = order.createdAt ? new Date(order.createdAt) : new Date();
+        const groupKey = order.groupId || `${customerId}_${createdAt.setSeconds(0, 0)}`;
+
+        if (!acc[groupKey]) {
+            const orderIdPart = order.orderId ? (order.orderId.split('-')[1] || 'OLD') : 'ERR';
+            acc[groupKey] = {
+                id: groupKey,
+                displayId: order.groupId || `GRP-${orderIdPart}`,
+                customer: order.customer || { name: 'Unknown', mobile: 'N/A' },
+                createdAt: order.createdAt || new Date(),
+                status: order.status || 'PENDING',
+                paymentMethod: order.paymentMethod || 'N/A',
+                paymentStatus: order.paymentStatus || 'PENDING',
+                total: 0,
+                itemsCount: 0,
+                vendors: [],
+                subOrders: [],
+                deliveryAddress: order.deliveryAddress
+            };
+        }
+
+        acc[groupKey].total += order.total;
+        acc[groupKey].itemsCount += (order.items || []).reduce((sum, item) => sum + item.quantity, 0);
+
+        if (!acc[groupKey].vendors.includes(order.vendor?.name)) {
+            acc[groupKey].vendors.push(order.vendor?.name);
+        }
+
+        acc[groupKey].subOrders.push(order);
+
+        // Aggregate Status Logic: If any sub-order is PENDING, group is PENDING.
+        // If one is CANCELLED and others are DELIVERED, it's "MIXED"
+        const statuses = acc[groupKey].subOrders.map(o => o.status);
+        if (statuses.every(s => s === statuses[0])) {
+            acc[groupKey].status = statuses[0];
+        } else {
+            acc[groupKey].status = 'MIXED';
+        }
+
+        return acc;
+    }, {});
+
+    const groupedArray = Object.values(groupedOrders).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     // Pagination logic
-    const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
+    const totalPages = Math.ceil(groupedArray.length / entriesPerPage);
     const indexOfLastEntry = currentPage * entriesPerPage;
     const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-    const currentEntries = filteredOrders.slice(indexOfFirstEntry, indexOfLastEntry);
+    const currentEntries = groupedArray.slice(indexOfFirstEntry, indexOfLastEntry);
 
     const getStatusVariant = (status) => {
         switch (status) {
@@ -137,55 +187,57 @@ const OrdersPage = () => {
                         <thead className="border-b border-slate-50 dark:border-slate-800/50">
                             <tr>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">S.No</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Customer Profile</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Order Details</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Merchant & Village</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center">Status</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-right">Amount</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
-                            {currentEntries.map((order, index) => (
-                                <tr key={order._id} className="group hover:bg-primary-50/30 dark:hover:bg-primary-900/5 transition-all">
+                            {currentEntries.map((group, index) => (
+                                <tr key={group.id} className="group hover:bg-primary-50/30 dark:hover:bg-primary-900/5 transition-all">
                                     <td className="px-8 py-6">
                                         <span className="font-black text-slate-400 dark:text-slate-600 text-[10px] italic">{(indexOfFirstEntry + index + 1).toString().padStart(2, '0')}</span>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="font-black text-slate-900 dark:text-white text-sm tracking-widest">{order.orderId}</span>
-                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 italic">{order.customer?.name || 'Unknown'}</span>
+                                            <span className="font-black text-slate-900 dark:text-white text-sm tracking-widest">{group.customer?.name || 'Unknown'}</span>
+                                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1 italic">{group.customer?.mobile || 'N/A'}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">
-                                            <span className="font-black text-slate-700 dark:text-slate-300 text-xs uppercase tracking-wider">{order.vendor?.name || 'Direct Shop'}</span>
-                                            <div className="flex items-center gap-1.5 mt-1">
-                                                <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-2 h-4 text-[8px] font-black uppercase tracking-widest">{order.deliveryAddress?.village || 'N/A'}</Badge>
+                                            <span className="font-black text-slate-700 dark:text-slate-300 text-[10px] uppercase tracking-wider">ID: {group.displayId}</span>
+                                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-2 h-4 text-[8px] font-black uppercase tracking-widest">{group.itemsCount} Items</Badge>
+                                                <Badge className="bg-primary-50 dark:bg-primary-900/20 text-primary-800 dark:text-primary-400 border-none px-2 h-4 text-[8px] font-black uppercase tracking-widest">{group.vendors.length} Shops</Badge>
                                             </div>
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">{new Date(group.createdAt).toLocaleDateString()} at {new Date(group.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex justify-center">
                                             <Badge
-                                                variant={getStatusVariant(order.status)}
+                                                variant={getStatusVariant(group.status)}
                                                 className="px-4 py-1.5 font-black text-[9px] uppercase tracking-widest"
                                             >
-                                                {order.status}
+                                                {group.status}
                                             </Badge>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex flex-col items-end">
-                                            <span className="font-black text-slate-900 dark:text-white text-base tracking-tighter italic">₹{(order.total || order.amount || 0).toLocaleString()}</span>
-                                            <span className="text-[9px] font-black text-slate-900 dark:text-slate-500 uppercase tracking-widest">{order.paymentMethod === 'cod' ? 'COD' : 'UPI'} Pending</span>
+                                            <span className="font-black text-slate-900 dark:text-white text-base tracking-tighter italic">₹{group.total.toLocaleString()}</span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{group.paymentMethod?.toUpperCase()} • {group.paymentStatus}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={() => navigate(`/admin/orders/${order._id}`)}
+                                                onClick={() => navigate(`/admin/orders/${group.subOrders[0]._id}?groupId=${group.id}`)}
                                                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-primary-800 hover:text-white dark:hover:bg-primary-500 transition-all shadow-sm"
-                                                title="View Details"
+                                                title="View Transaction Details"
                                             >
                                                 <Eye size={18} />
                                             </button>

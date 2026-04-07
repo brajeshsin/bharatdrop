@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Card, Badge, Button, cn } from '../../components/common';
 import { adminService } from '../../services/adminService';
 import {
@@ -17,18 +17,35 @@ import { toast } from 'react-hot-toast';
 const OrderDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { setIsLoading } = useLoading();
-    const [order, setOrder] = useState(null);
+    const [orders, setOrders] = useState([]);
+    const [isGrouped, setIsGrouped] = useState(false);
+
+    const queryParams = new URLSearchParams(location.search);
+    const groupId = queryParams.get('groupId');
 
     const fetchOrderDetails = async () => {
         setIsLoading(true);
         try {
-            const data = await adminService.getOrderById(id);
-            if (data) {
-                setOrder(data);
+            if (groupId) {
+                const data = await adminService.getOrdersByGroupId(groupId);
+                if (data && data.length > 0) {
+                    setOrders(data);
+                    setIsGrouped(true);
+                } else {
+                    toast.error('Transaction group not found');
+                    navigate('/admin/orders');
+                }
             } else {
-                toast.error('Order not found');
-                navigate('/admin/orders');
+                const data = await adminService.getOrderById(id);
+                if (data) {
+                    setOrders([data]);
+                    setIsGrouped(false);
+                } else {
+                    toast.error('Order not found');
+                    navigate('/admin/orders');
+                }
             }
         } catch (error) {
             toast.error('Failed to load order details');
@@ -41,12 +58,12 @@ const OrderDetail = () => {
         fetchOrderDetails();
     }, [id]);
 
-    const handleStatusUpdate = async (newStatus) => {
+    const handleStatusUpdate = async (orderId, newStatus) => {
         try {
-            const response = await adminService.updateOrderStatus(order._id, newStatus);
+            const response = await adminService.updateOrderStatus(orderId, newStatus);
             if (response.success) {
                 toast.success(`Order marked as ${newStatus}`);
-                setOrder({ ...order, status: newStatus });
+                setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: newStatus } : o));
             } else {
                 toast.error(response.message || 'Update failed');
             }
@@ -55,12 +72,12 @@ const OrderDetail = () => {
         }
     };
 
-    const handlePaymentUpdate = async (newStatus) => {
+    const handlePaymentUpdate = async (orderId, newStatus) => {
         try {
-            const response = await adminService.updatePaymentStatus(order._id, newStatus);
+            const response = await adminService.updatePaymentStatus(orderId, newStatus);
             if (response.success) {
                 toast.success(`Payment marked as ${newStatus}`);
-                setOrder({ ...order, paymentStatus: newStatus });
+                setOrders(prev => prev.map(o => o._id === orderId ? { ...o, paymentStatus: newStatus } : o));
             } else {
                 toast.error(response.message || 'Update failed');
             }
@@ -81,7 +98,8 @@ const OrderDetail = () => {
         }
     };
 
-    if (!order) return null;
+    if (!orders || orders.length === 0) return null;
+    const baseOrder = orders[0]; // Primary order for customer/address info
 
     return (
         <div className="space-y-8 animate-fade-in pb-20">
@@ -96,13 +114,15 @@ const OrderDetail = () => {
                     </button>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Order #{order.orderId || 'N/A'}</h2>
-                            <Badge variant={getStatusVariant(order.status)} className="px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">
-                                {order.status}
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">
+                                {isGrouped ? `Transaction #${baseOrder.groupId}` : `Order #${baseOrder.orderId}`}
+                            </h2>
+                            <Badge variant={getStatusVariant(baseOrder.status)} className="px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">
+                                {isGrouped ? (orders.every(o => o.status === baseOrder.status) ? baseOrder.status : 'MIXED') : baseOrder.status}
                             </Badge>
                         </div>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-                            Transaction ID: {order._id} • {order.createdAt ? new Date(order.createdAt).toLocaleString() : 'Date N/A'}
+                            {orders.length} Shop(s) • {baseOrder.createdAt ? new Date(baseOrder.createdAt).toLocaleString() : 'Date N/A'}
                         </p>
                     </div>
                 </div>
@@ -121,17 +141,18 @@ const OrderDetail = () => {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Status Management Bar */}
                     <Card className="p-8 border-none shadow-2xl bg-white dark:bg-slate-900 rounded-[2.5rem]">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 italic text-center">Manage Transaction State</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6 italic text-center">Update Transaction State (All Shops)</p>
                         <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
                             {['PENDING', 'ACCEPTED', 'READY', 'PICKED', 'DELIVERED', 'CANCELLED'].map((stat) => {
-                                const isTerminal = order.status === 'DELIVERED' || order.status === 'CANCELLED';
-                                const isActive = order.status === stat;
+                                const baseStatus = baseOrder.status;
+                                const isTerminal = baseStatus === 'DELIVERED' || baseStatus === 'CANCELLED';
+                                const isActive = orders.every(o => o.status === stat);
 
                                 return (
                                     <button
                                         key={stat}
-                                        onClick={() => handleStatusUpdate(stat)}
-                                        disabled={isTerminal || isActive}
+                                        onClick={() => orders.forEach(o => handleStatusUpdate(o._id, stat))}
+                                        disabled={isActive}
                                         className={cn(
                                             "flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all group",
                                             isActive
@@ -155,60 +176,82 @@ const OrderDetail = () => {
                         </div>
                     </Card>
 
-                    {/* Order Items */}
-                    <Card className="border-none shadow-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
-                            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-sm italic">Items Purchased</h3>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{(order.items || []).length} Product(s)</span>
-                        </div>
-                        <div className="p-0">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50/50 dark:bg-slate-800/30">
-                                    <tr>
-                                        <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Product</th>
-                                        <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-center">Qty</th>
-                                        <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-right">Price</th>
-                                        <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
-                                    {(order.items || []).map((item, idx) => (
-                                        <tr key={idx} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all font-medium">
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 p-1 group-hover:scale-110 transition-transform shadow-sm">
-                                                        <img src={item.image} alt="" className="w-full h-full object-cover rounded-xl" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-xs">{item.name || 'Unnamed Product'}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Per Unit: ₹{item.price || 0}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 text-center">
-                                                <span className="font-black text-slate-900 dark:text-white text-xs">{item.quantity || 0} {item.unit || 'units'}</span>
-                                            </td>
-                                            <td className="px-8 py-6 text-right font-black text-slate-500 dark:text-slate-400 text-xs">₹{item.price || 0}</td>
-                                            <td className="px-8 py-6 text-right font-black text-slate-900 dark:text-white text-sm">₹{(item.price || 0) * (item.quantity || 0)}</td>
+                    {/* Order Items Grouped by Shop */}
+                    {orders.map((subOrder, sidx) => (
+                        <Card key={subOrder._id} className="border-none shadow-2xl bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden">
+                            <div className="p-8 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between bg-primary-50/30 dark:bg-primary-900/10">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-primary-800 text-white flex items-center justify-center shadow-lg transform -rotate-3 italic font-black">{sidx + 1}</div>
+                                    <div>
+                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-sm italic">{subOrder.vendor?.name || 'Direct Shop'}</h3>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Order ID: {subOrder.orderId}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Badge variant={getStatusVariant(subOrder.status)} className="px-3 py-1 font-black text-[8px] uppercase tracking-widest">
+                                        {subOrder.status}
+                                    </Badge>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{(subOrder.items || []).length} Item(s)</span>
+                                </div>
+                            </div>
+                            <div className="p-0">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50/50 dark:bg-slate-800/30">
+                                        <tr>
+                                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Product</th>
+                                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-center">Qty</th>
+                                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-right">Price</th>
+                                            <th className="px-8 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest italic text-right">Total</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="p-10 bg-slate-50/50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                            <div className="w-full max-w-xs space-y-4">
-                                <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <span>Subtotal</span>
-                                    <span>₹{order.total || order.subtotal || 0}</span>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800/30">
+                                        {(subOrder.items || []).map((item, idx) => (
+                                            <tr key={idx} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all font-medium">
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 p-1 group-hover:scale-110 transition-transform shadow-sm">
+                                                            <img src={item.image} alt="" className="w-full h-full object-cover rounded-xl" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-xs">{item.name || 'Unnamed Product'}</p>
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Per Unit: ₹{item.price || 0}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-center">
+                                                    <span className="font-black text-slate-900 dark:text-white text-xs">{item.quantity || 0} {item.unit || 'units'}</span>
+                                                </td>
+                                                <td className="px-8 py-6 text-right font-black text-slate-500 dark:text-slate-400 text-xs">₹{item.price || 0}</td>
+                                                <td className="px-8 py-6 text-right font-black text-slate-900 dark:text-white text-sm">₹{(item.price || 0) * (item.quantity || 0)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="p-8 bg-slate-50/50 dark:bg-slate-800/20 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                                <div className="w-full max-w-xs space-y-2">
+                                    <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                        <span>Shop Total</span>
+                                        <span className="text-slate-900 dark:text-white">₹{subOrder.total.toLocaleString()}</span>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <span>Platform Fee</span>
-                                    <span>₹0.00</span>
+                            </div>
+                        </Card>
+                    ))}
+
+                    {/* Transaction Summary */}
+                    <Card className="p-10 border-none shadow-2xl bg-primary-900 dark:bg-slate-900 rounded-[3rem] text-white">
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-3xl bg-white/10 flex items-center justify-center text-white shadow-inner"><Package size={32} /></div>
+                                <div>
+                                    <h4 className="text-xl font-black uppercase tracking-tighter leading-none italic">Transaction Total</h4>
+                                    <p className="text-[10px] font-black opacity-40 uppercase tracking-[0.2em] mt-2 italic">Combined across {orders.length} vendor(s)</p>
                                 </div>
-                                <div className="pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-end">
-                                    <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest italic">Grand Total</span>
-                                    <span className="text-3xl font-black text-primary-800 dark:text-primary-400 italic tracking-tighter">₹{(order.total || 0).toLocaleString()}</span>
-                                </div>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-4xl md:text-6xl font-black text-secondary italic tracking-tighter">₹{orders.reduce((sum, o) => sum + o.total, 0).toLocaleString()}</span>
+                                <p className="text-[10px] font-black opacity-40 uppercase tracking-[0.2em] mt-2 italic">Inclusive of all delivery fees</p>
                             </div>
                         </div>
                     </Card>
@@ -228,9 +271,9 @@ const OrderDetail = () => {
                             </div>
                             <div className="space-y-4">
                                 <div>
-                                    <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-1">{order.customer?.name || 'Unknown'}</p>
+                                    <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-1">{baseOrder.customer?.name || 'Unknown'}</p>
                                     <div className="flex items-center gap-2 text-slate-400 font-bold text-xs">
-                                        <Phone size={12} /> {order.customer?.mobile || 'N/A'}
+                                        <Phone size={12} /> {baseOrder.customer?.mobile || 'N/A'}
                                     </div>
                                 </div>
                                 <div className="pt-6 border-t border-slate-50 dark:border-slate-800 space-y-4">
@@ -239,7 +282,7 @@ const OrderDetail = () => {
                                         <div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 italic">Delivery Co-ordinates</p>
                                             <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 leading-relaxed uppercase tracking-wide">
-                                                {order.deliveryAddress?.address || 'No Address'}, {order.deliveryAddress?.village || ''} - {order.deliveryAddress?.pincode || ''}
+                                                {baseOrder.deliveryAddress?.address || 'No Address'}, {baseOrder.deliveryAddress?.village || ''} - {baseOrder.deliveryAddress?.pincode || ''}
                                             </p>
                                         </div>
                                     </div>
@@ -258,8 +301,11 @@ const OrderDetail = () => {
                                 </div>
                                 <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] text-[11px] italic">Merchant Profile</h4>
                             </div>
-                            <p className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tighter mb-4">{order.vendor?.name || 'Direct Shop'}</p>
-                            <Badge className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-4 py-2 font-black text-[9px] uppercase tracking-widest">Premium Vendor</Badge>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {orders.map(o => (
+                                    <Badge key={o._id} className="bg-slate-50 dark:bg-slate-800 text-slate-400 border-none px-4 py-2 font-black text-[9px] uppercase tracking-widest">{o.vendor?.name}</Badge>
+                                ))}
+                            </div>
                         </div>
                     </Card>
 
@@ -277,34 +323,34 @@ const OrderDetail = () => {
                                 <div className="flex justify-between items-end">
                                     <div>
                                         <p className="text-[9px] font-black opacity-40 uppercase tracking-widest mb-1 italic">Settlement Mode</p>
-                                        <p className="text-xl font-black uppercase italic tracking-widest">{order.paymentMethod}</p>
+                                        <p className="text-xl font-black uppercase italic tracking-widest">{baseOrder.paymentMethod}</p>
                                     </div>
                                     <Badge
-                                        variant={order.paymentStatus === 'COMPLETED' ? 'success' : 'warning'}
+                                        variant={orders.every(o => o.paymentStatus === 'COMPLETED') ? 'success' : 'warning'}
                                         className="border-none py-1.5 px-4 font-black text-[9px] tracking-widest uppercase shadow-lg"
                                     >
-                                        {order.paymentStatus === 'COMPLETED' ? 'PAID' : order.paymentStatus}
+                                        {orders.every(o => o.paymentStatus === 'COMPLETED') ? 'PAID' : (orders.some(o => o.paymentStatus === 'COMPLETED') ? 'PARTIAL' : baseOrder.paymentStatus)}
                                     </Badge>
                                 </div>
 
-                                {order.paymentStatus === 'PENDING' && (
+                                {orders.some(o => o.paymentStatus !== 'COMPLETED') && (
                                     <button
-                                        onClick={() => handlePaymentUpdate('COMPLETED')}
+                                        onClick={() => orders.forEach(o => handlePaymentUpdate(o._id, 'COMPLETED'))}
                                         className="w-full py-4 bg-white text-primary-900 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-secondary transition-all active:scale-95 shadow-xl"
                                     >
-                                        Mark as Paid
+                                        Mark Transaction as Paid
                                     </button>
                                 )}
 
-                                {order.paymentMethod === 'upi' && order.upiDetails && (
+                                {baseOrder.paymentMethod === 'upi' && baseOrder.upiDetails && (
                                     <div className="pt-6 border-t border-white/10 space-y-4">
                                         <div className="flex justify-between items-center">
                                             <span className="text-[9px] font-black opacity-40 uppercase tracking-widest">Ref Code</span>
-                                            <span className="text-[11px] font-black tracking-widest font-mono">{order.upiDetails.refNumber}</span>
+                                            <span className="text-[11px] font-black tracking-widest font-mono">{baseOrder.upiDetails.refNumber}</span>
                                         </div>
-                                        {order.upiDetails.screenshot && (
+                                        {baseOrder.upiDetails.screenshot && (
                                             <a
-                                                href={order.upiDetails.screenshot}
+                                                href={baseOrder.upiDetails.screenshot}
                                                 target="_blank" rel="noopener noreferrer"
                                                 className="block w-full py-3 bg-white/10 hover:bg-white/20 transition-all rounded-xl text-center text-[9px] font-black uppercase tracking-[0.2em] border border-white/5"
                                             >

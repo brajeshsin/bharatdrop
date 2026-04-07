@@ -43,6 +43,54 @@ exports.getOrderById = async (req, res) => {
     }
 };
 
+// @desc    Get orders by group ID
+// @route   GET /api/orders/group/:groupId
+// @access  Private (Admin)
+exports.getOrdersByGroupId = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const customerDb = mongoose.connection.useDb('bharatdrop_customer');
+        const Order = customerDb.model('Order', OrderSchema);
+
+        // 1. Try finding by groupId field
+        let orders = await Order.find({ groupId }).sort({ vendorName: 1 });
+
+        // 2. Fallback for old orders or single orders
+        if (!orders || orders.length === 0) {
+            // Check if it's the fallback key format: customerId_timestamp
+            if (groupId.includes('_')) {
+                const [customerId, timestamp] = groupId.split('_');
+                if (mongoose.Types.ObjectId.isValid(customerId)) {
+                    // Find orders for this customer within a 1-minute window of the timestamp
+                    const startTime = new Date(parseInt(timestamp));
+                    const endTime = new Date(startTime.getTime() + 60000); // 1 minute window
+
+                    orders = await Order.find({
+                        'customer.id': customerId,
+                        createdAt: { $gte: startTime, $lt: endTime }
+                    });
+                }
+            } else if (mongoose.Types.ObjectId.isValid(groupId)) {
+                // If it's a valid ObjectId, maybe it's a direct order ID
+                const singleOrder = await Order.findById(groupId);
+                if (singleOrder) orders = [singleOrder];
+            }
+        }
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ success: false, message: 'No orders found for this reference' });
+        }
+
+        res.json({
+            success: true,
+            orders
+        });
+    } catch (error) {
+        console.error('getOrdersByGroupId Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // @desc    Update order status
 // @route   PATCH /api/orders/:id/status
 // @access  Private (Admin)

@@ -9,15 +9,15 @@ exports.getCategories = async (req, res) => {
 
         const adminDb = mongoose.connection.useDb('bharatdrop_admin');
 
-        // Define schemas for models relative to the admin DB connection
-        const Category = adminDb.model('Category', new mongoose.Schema({
+        // Use existing models if already defined on the connection
+        const Category = adminDb.models.Category || adminDb.model('Category', new mongoose.Schema({
             name: { type: String, required: true },
             image: { type: String, required: true },
             color: { type: String },
             section: { type: String }
         }));
 
-        const Vendor = adminDb.model('Vendor', new mongoose.Schema({
+        const Vendor = adminDb.models.Vendor || adminDb.model('Vendor', new mongoose.Schema({
             category: { type: String },
             status: { type: String }
         }));

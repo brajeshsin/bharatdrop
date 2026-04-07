@@ -68,6 +68,15 @@ export const adminService = {
             return null;
         }
     },
+    getOrdersByGroupId: async (groupId) => {
+        try {
+            const response = await api.get(`/orders/group/${groupId}`);
+            return response.data.success ? response.data.orders : [];
+        } catch (error) {
+            console.error('Error fetching grouped orders:', error);
+            return [];
+        }
+    },
     updateOrderStatus: async (id, status) => {
         try {
             const response = await api.patch(`/orders/${id}/status`, { status });
