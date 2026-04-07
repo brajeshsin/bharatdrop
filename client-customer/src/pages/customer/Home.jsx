@@ -97,9 +97,10 @@ const CustomerHome = () => {
 
     useEffect(() => {
         if (heroData?.images?.length > 1) {
+            const timer = (heroData.carouselTimer || 5) * 1000;
             const interval = setInterval(() => {
                 setCurrentHeroImage(prev => (prev + 1) % heroData.images.length);
-            }, 6000);
+            }, timer);
             return () => clearInterval(interval);
         }
     }, [heroData]);

@@ -13,6 +13,7 @@ const HeroSettings = () => {
         subtitle: '',
         description: '',
         deliveryDuration: '',
+        carouselTimer: 5,
         isActive: true
     });
 
@@ -154,6 +155,21 @@ const HeroSettings = () => {
                                     onChange={handleInputChange}
                                     className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-12 pr-5 py-4 font-bold text-slate-800 focus:border-primary-800 outline-none transition-all"
                                     placeholder="e.g. 30 Mins"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Carousel Timer (Seconds)</label>
+                            <div className="relative">
+                                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-black uppercase">Sec</div>
+                                <input
+                                    type="number"
+                                    name="carouselTimer"
+                                    value={formData.carouselTimer}
+                                    onChange={handleInputChange}
+                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl pl-16 pr-5 py-4 font-bold text-slate-800 focus:border-primary-800 outline-none transition-all"
+                                    placeholder="e.g. 5"
                                 />
                             </div>
                         </div>
