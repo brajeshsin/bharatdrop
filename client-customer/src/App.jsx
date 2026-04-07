@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth, ROLES } from './context/AuthContext';
 import MainLayout from './components/layout/MainLayout';
-import FullPageLoader from './components/common/FullPageLoader';
 import { CartProvider } from './context/CartContext';
 import { Toaster } from 'react-hot-toast';
 
@@ -41,7 +40,14 @@ const getRolePath = (role) => {
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <FullPageLoader />;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-bg-base dark:bg-slate-950">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-800 rounded-full animate-spin"></div>
+        <p className="font-black text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">INITIATING BHARATDROP...</p>
+      </div>
+    </div>
+  );
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -57,7 +63,7 @@ const LoggedInRedirect = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return <FullPageLoader />;
+  if (loading) return null;
 
   if (user) {
     const targetPath = getRolePath(user.role);

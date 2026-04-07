@@ -2,7 +2,6 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, ROLES } from './context/AuthContext';
 import AdminLayout from './components/layout/AdminLayout';
-import FullPageLoader from './components/common/FullPageLoader';
 
 // Admin Auth Page
 import AdminLogin from './pages/auth/AdminLogin';
@@ -22,12 +21,18 @@ import AdminSettings from './pages/admin/Settings';
 import PaymentManagement from './pages/admin/PaymentManagement';
 import VendorDetail from './pages/admin/VendorDetail';
 import AddVendor from './pages/admin/AddVendor';
-import HeroSettings from './pages/admin/HeroSettings';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <FullPageLoader message="SECURE ACCESS..." />;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-950">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-800 rounded-full animate-spin"></div>
+        <p className="font-black text-xs text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">SECURE ACCESS...</p>
+      </div>
+    </div>
+  );
 
   if (!user || user.role !== ROLES.ADMIN) return <Navigate to="/login" replace />;
 
@@ -36,7 +41,7 @@ const ProtectedRoute = ({ children }) => {
 
 const LoggedInRedirect = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return <FullPageLoader />;
+  if (loading) return null;
   if (user && user.role === ROLES.ADMIN) return <Navigate to="/admin" replace />;
   return children;
 };
@@ -71,7 +76,6 @@ function AppRoutes() {
         <Route path="reports" element={<AdminReports />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="payment-methods" element={<PaymentManagement />} />
-        <Route path="hero" element={<HeroSettings />} />
       </Route>
 
       {/* Default Redirect */}

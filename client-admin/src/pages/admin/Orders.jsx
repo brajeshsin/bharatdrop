@@ -84,7 +84,7 @@ const OrdersPage = () => {
         <div className="space-y-6 animate-fade-in relative pb-12 px-4 md:px-0">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Order Details</h2>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Order Command</h2>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Platform-wide transaction monitoring</p>
                 </div>
                 <Button

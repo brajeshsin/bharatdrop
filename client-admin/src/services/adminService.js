@@ -174,22 +174,4 @@ export const adminService = {
             return { success: false, message: 'Server connection failed' };
         }
     },
-    getHeroContent: async () => {
-        try {
-            const response = await api.get('/hero');
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching hero content:', error);
-            return { success: false, message: 'Server connection failed' };
-        }
-    },
-    updateHeroContent: async (heroData) => {
-        try {
-            const response = await api.put('/hero', heroData);
-            return response.data;
-        } catch (error) {
-            console.error('Error updating hero content:', error);
-            return { success: false, message: 'Server connection failed' };
-        }
-    },
 };
