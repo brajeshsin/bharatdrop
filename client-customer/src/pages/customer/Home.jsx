@@ -13,6 +13,7 @@ import logisticsHero from '../../assets/logistics_hero.png';
 import { getAds } from '../../services/adService';
 import AdBanner from '../../components/common/AdBanner';
 import { vendorService } from '../../services/vendorService';
+import { heroService } from '../../services/heroService';
 
 const CategoryItem = ({ cat, i, selectedCategory, setSelectedCategory }) => {
     const [imageError, setImageError] = useState(false);
@@ -81,8 +82,27 @@ const CustomerHome = () => {
     const [vendors, setVendors] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loadingVendors, setLoadingVendors] = useState(true);
+    const [heroData, setHeroData] = useState(null);
+    const [currentHeroImage, setCurrentHeroImage] = useState(0);
     const { t } = useTranslation();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchHero = async () => {
+            const data = await heroService.getHeroContent();
+            if (data) setHeroData(data);
+        };
+        fetchHero();
+    }, []);
+
+    useEffect(() => {
+        if (heroData?.images?.length > 1) {
+            const interval = setInterval(() => {
+                setCurrentHeroImage(prev => (prev + 1) % heroData.images.length);
+            }, 6000);
+            return () => clearInterval(interval);
+        }
+    }, [heroData]);
 
     useEffect(() => {
         const fetchAds = async () => {
@@ -121,37 +141,83 @@ const CustomerHome = () => {
 
             <main className="w-full px-6 md:px-12 lg:px-16 space-y-20 py-24 md:py-32">
 
-                {/* Hero Section */}
-                <section className="relative rounded-[3rem] overflow-hidden bg-primary-900 group shadow-2xl shadow-primary-900/20">
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-900 via-primary-900/80 to-transparent z-10"></div>
-                    <motion.img
-                        src="https://images.unsplash.com/photo-1626074353765-517a681e40be?auto=format&fit=crop&q=80&w=1200"
-                        alt="Village Delivery"
-                        className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
-                        animate={{
-                            scale: [1, 1.1, 1],
-                        }}
-                        transition={{
-                            duration: 20,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                        }}
-                    />
-                    <div className="relative z-20 p-8 md:p-16 space-y-6 max-w-2xl">
-                        <Badge className="bg-secondary text-primary-900 border-none font-black py-2 px-4 text-xs uppercase tracking-widest leading-none">Hyperlocal Village Hub</Badge>
-                        <h1 className="text-4xl md:text-6xl font-black text-white leading-none tracking-tight">
-                            {t('home.hero_title')} <br />
-                            <span className="text-secondary italic">{t('home.hero_subtitle')}</span>
-                        </h1>
-                        <p className="text-primary-100 font-bold text-lg md:text-xl max-w-lg leading-relaxed">
-                            {t('home.hero_desc')}
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                            <Button className="py-4 px-8 text-lg font-black bg-white text-primary-900 border-none shadow-xl shadow-black/20 hover:bg-primary-800 hover:text-white transition-all">{t('home.order_now')}</Button>
-                            <div className="flex items-center gap-3 text-white font-black text-xs uppercase tracking-[0.2em] bg-black/20 backdrop-blur-md px-6 rounded-2xl">
-                                <Zap className="text-secondary" size={18} fill="currentColor" /> {t('home.express_delivery')}
-                            </div>
+                {/* Dynamic Hero Section */}
+                <section className="relative h-[450px] md:h-[550px] rounded-[3rem] overflow-hidden bg-primary-900 group shadow-2xl shadow-primary-900/20">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary-900 via-primary-900/60 to-transparent z-10"></div>
+
+                    <AnimatePresence mode="wait">
+                        <motion.img
+                            key={currentHeroImage}
+                            src={heroData?.images?.[currentHeroImage] || "https://images.unsplash.com/photo-1626074353765-517a681e40be?auto=format&fit=crop&q=80&w=1200"}
+                            alt="Village Delivery"
+                            initial={{ opacity: 0, scale: 1.1 }}
+                            animate={{ opacity: 0.6, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 1.5, ease: "easeInOut" }}
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        />
+                    </AnimatePresence>
+
+                    {/* Carousel Indicators */}
+                    {heroData?.images?.length > 1 && (
+                        <div className="absolute bottom-10 right-10 z-30 flex gap-2">
+                            {heroData.images.map((_, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setCurrentHeroImage(idx)}
+                                    className={cn(
+                                        "h-1.5 transition-all duration-500 rounded-full",
+                                        idx === currentHeroImage ? "w-8 bg-secondary shadow-lg shadow-secondary/50" : "w-1.5 bg-white/30 hover:bg-white/50"
+                                    )}
+                                />
+                            ))}
                         </div>
+                    )}
+
+                    <div className="relative z-20 p-8 md:p-16 h-full flex flex-col justify-center space-y-6 max-w-2xl">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <Badge className="bg-secondary text-primary-900 border-none font-black py-2 px-4 text-xs uppercase tracking-widest leading-none">
+                                {heroData?.title || "Hyperlocal Village Hub"}
+                            </Badge>
+                        </motion.div>
+
+                        <motion.h1
+                            className="text-4xl md:text-6xl font-black text-white leading-none tracking-tight uppercase"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            {heroData?.subtitle?.split(' AT ')[0] || "TOWN'S BEST BAZAAR"} <br />
+                            <span className="text-secondary italic">AT {heroData?.subtitle?.split(' AT ')[1] || "YOUR DOORSTEP"}</span>
+                        </motion.h1>
+
+                        <motion.p
+                            className="text-primary-100 font-bold text-lg md:text-xl max-w-lg leading-relaxed"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            {heroData?.description || t('home.hero_desc')}
+                        </motion.p>
+
+                        <motion.div
+                            className="flex flex-wrap gap-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <Button className="py-4 px-8 text-lg font-black bg-white text-primary-900 border-none shadow-xl shadow-black/20 hover:bg-primary-800 hover:text-white transition-all">
+                                {t('home.order_now')}
+                            </Button>
+                            <div className="flex items-center gap-3 text-white font-black text-xs uppercase tracking-[0.2em] bg-black/20 backdrop-blur-md px-6 rounded-2xl">
+                                <Zap className="text-secondary" size={18} fill="currentColor" />
+                                EXPRESS IN {heroData?.deliveryDuration?.toUpperCase() || "30 MINS"}
+                            </div>
+                        </motion.div>
                     </div>
                 </section>
 
