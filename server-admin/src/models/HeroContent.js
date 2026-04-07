@@ -25,10 +25,6 @@ const heroContentSchema = new mongoose.Schema({
         required: [true, 'Delivery duration is required'],
         default: "30 Mins"
     },
-    carouselTimer: {
-        type: Number,
-        default: 5
-    },
     isActive: {
         type: Boolean,
         default: true

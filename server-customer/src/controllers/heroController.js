@@ -14,7 +14,6 @@ exports.getHeroContent = async (req, res) => {
             subtitle: String,
             description: String,
             deliveryDuration: String,
-            carouselTimer: Number,
             isActive: { type: Boolean, default: true }
         }, { timestamps: true }));
 
