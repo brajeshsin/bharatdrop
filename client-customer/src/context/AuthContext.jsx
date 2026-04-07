@@ -35,13 +35,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('vdp_user', JSON.stringify(data.user));
                 localStorage.setItem('vdp_token', data.token);
 
-                const routeMap = {
-                    [ROLES.CUSTOMER]: '/home',
-                    [ROLES.VENDOR]: '/merchant',
-                    [ROLES.DELIVERY]: '/partner',
-                };
-
-                navigate(routeMap[data.user.role] || '/');
+                // Navigation handled by VerifyOtp component via role in navigation state
                 return { success: true };
             } else {
                 return { success: false, message: data.message };
@@ -53,9 +47,15 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const requestOtp = async (email, mobile, name) => {
+    const requestOtp = async (email, mobile, name, role = 'CUSTOMER', metadata = {}) => {
         try {
-            const response = await api.post('/auth/request-otp', { email, mobile, name });
+            const response = await api.post('/auth/request-otp', {
+                email,
+                mobile,
+                name,
+                role,
+                ...metadata
+            });
             return response.data;
         } catch (error) {
             return { success: false, message: error.response?.data?.message || 'Server connection failed' };
@@ -79,7 +79,9 @@ export const AuthProvider = ({ children }) => {
                     [ROLES.DELIVERY]: '/partner',
                 };
 
-                navigate(routeMap[data.user.role] || '/');
+                const target = routeMap[data.user.role] || '/home';
+                console.log('Auth success, role:', data.user.role, 'navigating to:', target);
+                navigate(target, { replace: true });
                 return { success: true };
             } else {
                 return { success: false, message: data.message };

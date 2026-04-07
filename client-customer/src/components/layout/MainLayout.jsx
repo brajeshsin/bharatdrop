@@ -24,6 +24,15 @@ const MainLayout = () => {
     const { t, i18n } = useTranslation();
     const { theme, toggleTheme } = useTheme();
 
+    const getRolePath = (role) => {
+        switch (role) {
+            case ROLES.CUSTOMER: return '/home';
+            case ROLES.VENDOR: return '/merchant';
+            case ROLES.DELIVERY: return '/partner';
+            default: return '/login';
+        }
+    };
+
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng);
     };
@@ -129,13 +138,15 @@ const MainLayout = () => {
                                 <ArrowLeft size={22} className="text-primary-800 dark:text-primary-400" />
                             </button>
                         ) : (
-                            <Link to="/" className="flex items-center gap-3 group">
+                            <Link to={getRolePath(user?.role)} className="flex items-center gap-3 group">
                                 <div className="w-10 h-10 bg-primary-800 rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform">
                                     <span className="text-white font-black text-xl">B</span>
                                 </div>
                                 <div className="hidden lg:block">
                                     <h1 className="text-lg font-black text-slate-800 dark:text-white leading-none tracking-tight">Bharat<span className="text-primary-800 dark:text-primary-400">Drop</span></h1>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">{t('header.logistics_hub')}</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">
+                                        {user?.role === ROLES.CUSTOMER ? t('header.logistics_hub') : `${user?.role} PORTAL`}
+                                    </p>
                                 </div>
                             </Link>
                         )}
@@ -149,7 +160,7 @@ const MainLayout = () => {
                         )}
 
                         {/* Location for Customer Home */}
-                        {isHome && (
+                        {isHome && user?.role === ROLES.CUSTOMER && (
                             <div
                                 onClick={() => setIsVillagePickerOpen(true)}
                                 className="hidden md:flex flex-col cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 p-2 px-3 rounded-2xl transition-all group border-2 border-transparent hover:border-primary-800/20 active:scale-95 shadow-sm hover:shadow-md"
@@ -164,34 +175,35 @@ const MainLayout = () => {
                         )}
                     </div>
 
-                    {/* Desktop Center: Search Bar */}
-                    <div className="hidden lg:flex flex-1 max-w-md relative group mx-4 h-12">
-                        <input
-                            type="text"
-                            placeholder={t('header.search_placeholder')}
-                            value={globalSearchQuery}
-                            onChange={(e) => setGlobalSearchQuery(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    navigate(`/home/search?q=${globalSearchQuery}`);
-                                    setIsSearchActive(false);
-                                }
-                            }}
-                            className="w-full pl-6 pr-14 py-3 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 transition-all shadow-sm h-full"
-                        />
-                        <button
-                            onClick={() => {
-                                if (globalSearchQuery.trim()) {
-                                    navigate(`/home/search?q=${globalSearchQuery}`);
-                                    setIsSearchActive(false);
-                                }
-                            }}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-primary-800 text-white rounded-xl hover:bg-primary-900 transition-all shadow-lg active:scale-90"
-                        >
-                            <Search size={18} />
-                        </button>
-
-                    </div>
+                    {/* Desktop Center: Search Bar (Customer Only) */}
+                    {user?.role === ROLES.CUSTOMER && (
+                        <div className="hidden lg:flex flex-1 max-w-md relative group mx-4 h-12">
+                            <input
+                                type="text"
+                                placeholder={t('header.search_placeholder')}
+                                value={globalSearchQuery}
+                                onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        navigate(`/home/search?q=${globalSearchQuery}`);
+                                        setIsSearchActive(false);
+                                    }
+                                }}
+                                className="w-full pl-6 pr-14 py-3 bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 transition-all shadow-sm h-full"
+                            />
+                            <button
+                                onClick={() => {
+                                    if (globalSearchQuery.trim()) {
+                                        navigate(`/home/search?q=${globalSearchQuery}`);
+                                        setIsSearchActive(false);
+                                    }
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-primary-800 text-white rounded-xl hover:bg-primary-900 transition-all shadow-lg active:scale-90"
+                            >
+                                <Search size={18} />
+                            </button>
+                        </div>
+                    )}
 
                     {/* Desktop Center: Navigation (only for top-level pages and if search is not taking up space) */}
                     {isHubPage && !isSearchActive && (
@@ -250,25 +262,29 @@ const MainLayout = () => {
                             )}
                         </button>
 
-                        {/* Global Search Button for Mobile */}
-                        <button
-                            onClick={() => setIsSearchActive(true)}
-                            className="lg:hidden p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
-                        >
-                            <Search size={22} />
-                        </button>
+                        {/* Global Search Button for Mobile (Customer Only) */}
+                        {user?.role === ROLES.CUSTOMER && (
+                            <button
+                                onClick={() => setIsSearchActive(true)}
+                                className="lg:hidden p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                            >
+                                <Search size={22} />
+                            </button>
+                        )}
 
-                        <button
-                            onClick={() => navigate('/home/cart')}
-                            className="p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all relative group/cart"
-                        >
-                            <ShoppingBag size={22} className="group-hover/cart:scale-110 transition-transform" />
-                            {itemCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-primary-800 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg">
-                                    {itemCount}
-                                </span>
-                            )}
-                        </button>
+                        {user?.role === ROLES.CUSTOMER && (
+                            <button
+                                onClick={() => navigate('/home/cart')}
+                                className="p-2.5 text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all relative group/cart"
+                            >
+                                <ShoppingBag size={22} className="group-hover/cart:scale-110 transition-transform" />
+                                {itemCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 w-5 h-5 bg-primary-800 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-lg" >
+                                        {itemCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
                         <div className="h-8 w-px bg-slate-100 dark:bg-slate-800 mx-2 hidden sm:block"></div>
 
@@ -360,78 +376,80 @@ const MainLayout = () => {
                 })}
             </nav>
 
-            {/* Premium Fluid Footer */}
-            <footer className="bg-slate-900 text-white pt-20 pb-10 mt-10 w-full relative z-40">
-                <div className="w-full px-6 md:px-12 lg:px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 border-b border-white/10 pb-16">
-                    <div className="space-y-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-primary-600 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg ring-4 ring-white/10">B</div>
-                            <h3 className="text-3xl font-black uppercase tracking-tighter">Bharat<span className="text-secondary">Drop</span></h3>
-                        </div>
-                        <p className="text-slate-400 font-bold text-sm leading-relaxed uppercase tracking-wide">{t('footer.tagline')}</p>
-                        <div className="flex gap-4">
-                            {[Globe, Send, MessageSquare].map((Icon, i) => (
-                                <button key={i} className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-primary-600 transition-colors shadow-inner">
-                                    <Icon size={18} />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.quick_links')}</h4>
-                        <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
-                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.vendor_login')}</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.partner_with_us')}</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.about_story')}</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">{t('footer.impact_report')}</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.service_areas')}</h4>
-                        <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
-                            <li className="hover:text-white cursor-pointer transition-colors">Dhanikhera Town Areas</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">Bhagwant Nagar Town Areas</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">Village Cluster A</li>
-                            <li className="hover:text-white cursor-pointer transition-colors">Town-Central Hub</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-8">
-                        <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.support')}</h4>
+            {/* Premium Fluid Footer (Customer Only) */}
+            {user?.role === ROLES.CUSTOMER && (
+                <footer className="bg-slate-900 text-white pt-20 pb-10 mt-10 w-full relative z-40">
+                    <div className="w-full px-6 md:px-12 lg:px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 border-b border-white/10 pb-16">
                         <div className="space-y-6">
-                            <div className="flex items-center gap-4 group cursor-pointer">
-                                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-                                    <Phone size={20} />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.whatsapp_us')}</p>
-                                    <p className="text-sm font-black uppercase tracking-tight">+91 999 888 777</p>
-                                </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-primary-600 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg ring-4 ring-white/10">B</div>
+                                <h3 className="text-3xl font-black uppercase tracking-tighter">Bharat<span className="text-secondary">Drop</span></h3>
                             </div>
-                            <div className="flex items-center gap-4 group cursor-pointer">
-                                <div className="w-12 h-12 bg-primary-500/10 text-primary-500 rounded-2xl flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-all shadow-inner">
-                                    <Mail size={20} />
+                            <p className="text-slate-400 font-bold text-sm leading-relaxed uppercase tracking-wide">{t('footer.tagline')}</p>
+                            <div className="flex gap-4">
+                                {[Globe, Send, MessageSquare].map((Icon, i) => (
+                                    <button key={i} className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center hover:bg-primary-600 transition-colors shadow-inner">
+                                        <Icon size={18} />
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-8">
+                            <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.quick_links')}</h4>
+                            <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
+                                <li className="hover:text-white cursor-pointer transition-colors">{t('footer.vendor_login')}</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">{t('footer.partner_with_us')}</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">{t('footer.about_story')}</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">{t('footer.impact_report')}</li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-8">
+                            <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.service_areas')}</h4>
+                            <ul className="space-y-4 text-slate-400 font-bold text-sm uppercase tracking-widest">
+                                <li className="hover:text-white cursor-pointer transition-colors">Dhanikhera Town Areas</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">Bhagwant Nagar Town Areas</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">Village Cluster A</li>
+                                <li className="hover:text-white cursor-pointer transition-colors">Town-Central Hub</li>
+                            </ul>
+                        </div>
+
+                        <div className="space-y-8">
+                            <h4 className="font-black text-xs uppercase tracking-[0.3em] text-secondary">{t('footer.support')}</h4>
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4 group cursor-pointer">
+                                    <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
+                                        <Phone size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.whatsapp_us')}</p>
+                                        <p className="text-sm font-black uppercase tracking-tight">+91 999 888 777</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.email_support')}</p>
-                                    <p className="text-sm font-black uppercase tracking-tight">care@bharatdrop.in</p>
+                                <div className="flex items-center gap-4 group cursor-pointer">
+                                    <div className="w-12 h-12 bg-primary-50/10 text-primary-500 rounded-2xl flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-all shadow-inner">
+                                        <Mail size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.email_support')}</p>
+                                        <p className="text-sm font-black uppercase tracking-tight">care@bharatdrop.in</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="w-full px-6 md:px-12 lg:px-16 mt-10 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">{t('footer.copyright')}</p>
-                    <div className="flex gap-8 text-slate-500 font-black text-[10px] uppercase tracking-widest">
-                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.privacy')}</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.terms')}</span>
-                        <span className="hover:text-white cursor-pointer transition-colors">{t('footer.compliance')}</span>
+                    <div className="w-full px-6 md:px-12 lg:px-16 mt-10 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <p className="text-slate-500 font-black text-[10px] uppercase tracking-widest">{t('footer.copyright')}</p>
+                        <div className="flex gap-8 text-slate-500 font-black text-[10px] uppercase tracking-widest">
+                            <span className="hover:text-white cursor-pointer transition-colors">{t('footer.privacy')}</span>
+                            <span className="hover:text-white cursor-pointer transition-colors">{t('footer.terms')}</span>
+                            <span className="hover:text-white cursor-pointer transition-colors">{t('footer.compliance')}</span>
+                        </div>
                     </div>
-                </div>
-            </footer>
+                </footer>
+            )}
 
             {/* Global Search Overlay for Mobile and desktop backdrop (No Blur as requested) */}
             <AnimatePresence>

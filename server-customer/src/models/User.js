@@ -12,6 +12,16 @@ const userSchema = new mongoose.Schema({
         required: true,
         enum: ['CUSTOMER', 'VENDOR', 'DELIVERY'],
         default: 'CUSTOMER'
+    },
+    // Partner/Vendor Specific Fields
+    storeName: { type: String },
+    businessCategory: { type: String },
+    vehicleType: { type: String },
+    address: { type: String },
+    status: {
+        type: String,
+        enum: ['PENDING', 'ACTIVE', 'SUSPENDED'],
+        default: 'ACTIVE'
     }
 }, { timestamps: true });
 

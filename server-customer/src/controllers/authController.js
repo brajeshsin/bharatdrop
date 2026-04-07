@@ -4,17 +4,17 @@ const jwt = require('jsonwebtoken');
 
 exports.requestOtp = async (req, res) => {
     try {
-        let { email, mobile, name } = req.body;
+        let { email, mobile, name, role, storeName, businessCategory, vehicleType, address } = req.body;
         if (email) email = email.trim();
         if (mobile) mobile = mobile.trim();
         if (name) name = name.trim();
+        if (role) role = role.toUpperCase();
 
         const otp = "209863"; // Fixed Dummy OTP
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Case 1: REGISTRATION (All fields provided)
+        // Case 1: REGISTRATION (Basic fields + Role provided)
         if (email && mobile && name) {
-            // DIRECT MONGO QUERY - Faster than Mongoose findOne
             const conflicts = await User.collection.find(
                 { $or: [{ email }, { mobile }] },
                 { projection: { _id: 1, email: 1, mobile: 1 } }
@@ -40,14 +40,21 @@ exports.requestOtp = async (req, res) => {
                 });
             }
 
-            // DIRECT MONGO INSERT - Faster than User.create
+            // Determine initial status based on role
+            const status = (role === 'VENDOR' || role === 'DELIVERY') ? 'PENDING' : 'ACTIVE';
+
             await User.collection.insertOne({
                 email,
                 mobile,
                 name,
                 otp,
                 otpExpires,
-                role: 'CUSTOMER',
+                role: role || 'CUSTOMER',
+                storeName,
+                businessCategory,
+                vehicleType,
+                address,
+                status,
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -58,20 +65,47 @@ exports.requestOtp = async (req, res) => {
             });
         }
 
-        // Case 2: LOGIN (Only mobile provided)
-        if (mobile && !email && !name) {
-            // DIRECT MONGO UPDATE
-            const updateResult = await User.collection.updateOne(
-                { mobile },
-                { $set: { otp, otpExpires, updatedAt: new Date() } }
-            );
+        // Case 2: LOGIN (Only mobile provided, or existing user trying to register with different role)
+        if (mobile) {
+            const existingUser = await User.findOne({ mobile });
 
-            if (updateResult.matchedCount === 0) {
-                return res.status(404).json({
-                    success: false,
-                    code: 'USER_NOT_FOUND',
-                    message: 'No account found with this mobile number. Please register.'
+            if (existingUser) {
+                // If the registration request includes role/metadata, update the existing user
+                const updateData = {
+                    otp,
+                    otpExpires,
+                    updatedAt: new Date()
+                };
+
+                // Allow 'upgrading' from CUSTOMER to other roles
+                if (role && role !== 'CUSTOMER' && (!existingUser.role || existingUser.role === 'CUSTOMER')) {
+                    console.log(`[Auth] Upgrading user ${mobile} from ${existingUser.role || 'NONE'} to ${role}`);
+                    updateData.role = role;
+                    if (storeName) updateData.storeName = storeName;
+                    if (businessCategory) updateData.businessCategory = businessCategory;
+                    if (vehicleType) updateData.vehicleType = vehicleType;
+                    if (address) updateData.address = address;
+                    updateData.status = 'PENDING';
+                }
+
+                console.log(`[Auth] Updating user ${mobile}. New Role: ${updateData.role || existingUser.role}`);
+                await User.findOneAndUpdate(
+                    { mobile },
+                    { $set: updateData },
+                    { new: true }
+                );
+            } else if (email && name) {
+                // This shouldn't really happen here as Case 1 handles new users with all info,
+                // but for safety if it falls through:
+                await User.collection.insertOne({
+                    email, mobile, name, otp, otpExpires,
+                    role: role || 'CUSTOMER',
+                    status: (role === 'VENDOR' || role === 'DELIVERY') ? 'PENDING' : 'ACTIVE',
+                    storeName, businessCategory, vehicleType, address,
+                    createdAt: new Date(), updatedAt: new Date()
                 });
+            } else {
+                return res.status(400).json({ success: false, message: 'User not found. Please register.' });
             }
 
             return res.json({

@@ -15,7 +15,7 @@ const VerifyOtp = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const { email, mobile, isLogin } = location.state || {};
+    const { email, mobile, isLogin, role: stateRole } = location.state || {};
     const [otp, setOtp] = useState("");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +39,24 @@ const VerifyOtp = () => {
             setIsSubmitting(false);
         } else {
             toast.success("Welcome to BharatDrop!");
+            // Use role from navigation state as the most reliable source
+            const roleRouteMap = {
+                'VENDOR': '/merchant',
+                'DELIVERY': '/partner',
+                'CUSTOMER': '/home',
+            };
+            // Check saved user role first (most accurate), then fall back to state role
+            const savedUser = localStorage.getItem('vdp_user');
+            let finalRole = stateRole;
+            if (savedUser) {
+                try {
+                    const parsedUser = JSON.parse(savedUser);
+                    finalRole = parsedUser.role || stateRole;
+                } catch (e) { /* ignore */ }
+            }
+            const destination = roleRouteMap[finalRole] || '/home';
+            console.log('[VerifyOtp] Navigating to:', destination, 'Role:', finalRole);
+            navigate(destination, { replace: true });
         }
     };
 

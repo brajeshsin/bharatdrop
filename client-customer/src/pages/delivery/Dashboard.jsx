@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { MapPin, Package, Phone, CheckCircle2, Navigation, CircleDot, AlertCircle } from 'lucide-react';
-import { Card, Button, Badge } from '../../components/common';
+import { Card, Badge, Button } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
+import { MapPin, Package, Phone, CheckCircle2, Navigation, CircleDot, AlertCircle, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const DeliveryDashboard = () => {
+    const { user } = useAuth();
     const [isOnline, setIsOnline] = useState(true);
 
     const activeDeliveries = [
@@ -18,16 +20,37 @@ const DeliveryDashboard = () => {
         }
     ];
 
+    if (user?.status === 'PENDING') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 uppercase tracking-tight">
+                <div className="w-24 h-24 bg-primary-50 dark:bg-primary-900/20 rounded-[2.5rem] flex items-center justify-center text-primary-800 dark:text-primary-400 shadow-xl border-2 border-primary-100 dark:border-primary-800 animate-bounce">
+                    <ShieldAlert size={48} />
+                </div>
+                <div className="space-y-4 max-w-lg">
+                    <h1 className="text-4xl font-black text-slate-800 dark:text-white leading-tight underline decoration-primary-500 decoration-8 underline-offset-8">Onboarding Verification</h1>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">
+                        Hello, <span className="text-primary-800 dark:text-primary-400 font-black">{user.name}</span>! Your profile as a <span className="text-secondary font-black">Delivery Partner</span> is being verified.
+                    </p>
+                    <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-50 dark:border-slate-800 shadow-sm inline-block">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 font-sans">Vehicle Profile</p>
+                        <p className="text-xl font-black text-slate-800 dark:text-white">{user.vehicleType || 'Not Specified'}</p>
+                    </div>
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">We will notify you via SMS once you are active.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 animate-fade-in pb-20">
             {/* Online/Offline Toggle Header */}
-            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${isOnline ? 'bg-emerald-500' : 'bg-slate-400 shadow-none'}`}>
                         {isOnline ? <CheckCircle2 size={30} /> : <CircleDot size={30} />}
                     </div>
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Hello, Ravi!</h1>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Hello, {user?.name?.split(' ')[0]}!</h1>
                         <p className="text-slate-500 font-bold">{isOnline ? 'You are currently Online' : 'You are currently Offline'}</p>
                     </div>
                 </div>

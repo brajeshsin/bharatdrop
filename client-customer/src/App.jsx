@@ -38,15 +38,27 @@ const getRolePath = (role) => {
   }
 };
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, loading } = useAuth();
+// Helper: synchronously get user from localStorage as fallback
+const getUserSync = () => {
+  try {
+    const saved = localStorage.getItem('vdp_user');
+    return saved ? JSON.parse(saved) : null;
+  } catch { return null; }
+};
 
-  if (loading) return <FullPageLoader />;
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user: contextUser, loading } = useAuth();
+
+  // Use context user if available; otherwise fall back to localStorage
+  // This eliminates the React state race condition after login
+  const user = contextUser || getUserSync();
+
+  // Only show loader if truly loading AND localStorage has nothing
+  if (loading && !user) return <FullPageLoader />;
 
   if (!user) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect to their own dashboard instead of login
     return <Navigate to={getRolePath(user.role)} replace />;
   }
 
@@ -54,20 +66,18 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 const LoggedInRedirect = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user: contextUser, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return <FullPageLoader />;
+  const user = contextUser || getUserSync();
+
+  if (loading && !user) return <FullPageLoader />;
 
   if (user) {
     const targetPath = getRolePath(user.role);
-    // Prevent redirect loop if we're already on the target path or 
-    // if an ADMIN is trying to access a page they don't have access to here
     if (location.pathname !== targetPath && targetPath !== '/') {
       return <Navigate to={targetPath} replace />;
     }
-    // If it's an ADMIN and they're at /login, don't redirect them anywhere else 
-    // because they don't have a dashboard in this app
     if (user.role === ROLES.ADMIN) return children;
   }
 

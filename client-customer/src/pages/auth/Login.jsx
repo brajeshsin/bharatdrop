@@ -14,10 +14,15 @@ const Login = () => {
     const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(false);
+    const [role, setRole] = useState('CUSTOMER');
     const [formData, setFormData] = useState({
         name: "",
         email: "",
-        mobile: ""
+        mobile: "",
+        storeName: "",
+        businessCategory: "",
+        vehicleType: "Bike",
+        address: ""
     });
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +30,10 @@ const Login = () => {
     const handleSendOtp = async (e) => {
         e.preventDefault();
         setError("");
+
+        // Ensure a clean slate for new auth attempts
+        localStorage.removeItem('vdp_user');
+        localStorage.removeItem('vdp_token');
 
         if (isLogin) {
             if (!formData.mobile) {
@@ -39,16 +48,27 @@ const Login = () => {
         }
 
         setIsSubmitting(true);
-        // Call requestOtp with name/email only if NOT in login mode
+        // Extract registration metadata based on role
+        const metadata = {};
+        if (role === 'VENDOR') {
+            metadata.storeName = formData.storeName;
+            metadata.businessCategory = formData.businessCategory;
+            metadata.address = formData.address;
+        } else if (role === 'DELIVERY') {
+            metadata.vehicleType = formData.vehicleType;
+        }
+
         const result = await requestOtp(
             isLogin ? null : formData.email,
             formData.mobile,
-            isLogin ? null : formData.name
+            isLogin ? null : formData.name,
+            role,
+            metadata
         );
 
         if (result.success) {
             toast.success("OTP sent successfully!");
-            navigate('/verify', { state: { email: formData.email, mobile: formData.mobile, isLogin } });
+            navigate('/verify', { state: { email: formData.email, mobile: formData.mobile, isLogin, role } });
         } else {
             if (result.code === 'USER_EXISTS') {
                 toast.error(result.message, {
@@ -137,9 +157,33 @@ const Login = () => {
                                 <span className="text-primary-800 dark:text-primary-400">{isLogin ? 'BACK' : 'STARTED'}</span>
                             </h2>
                             <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest uppercase text-left">
-                                {isLogin ? 'Enter mobile to login' : 'Enter details to register'}
+                                {isLogin ? 'Enter mobile to login' : 'Choose your role and register'}
                             </p>
                         </div>
+
+                        {/* Role Selector */}
+                        {!isLogin && (
+                            <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-[1.5rem] border-2 border-slate-100 dark:border-slate-800">
+                                {[
+                                    { id: 'CUSTOMER', label: 'SHOP', icon: '🛒' },
+                                    { id: 'VENDOR', label: 'SELL', icon: '🏪' },
+                                    { id: 'DELIVERY', label: 'DELIVER', icon: '🛵' }
+                                ].map((r) => (
+                                    <button
+                                        key={r.id}
+                                        type="button"
+                                        onClick={() => setRole(r.id)}
+                                        className={`flex flex-col items-center gap-1 py-3 rounded-2xl transition-all ${role === r.id
+                                            ? 'bg-white dark:bg-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-none text-primary-800 dark:text-primary-400 scale-[1.02]'
+                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                            }`}
+                                    >
+                                        <span className="text-xl">{r.icon}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest">{r.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSendOtp} className="space-y-4">
                             <div className="space-y-3">
@@ -162,6 +206,51 @@ const Login = () => {
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             className="h-12 text-lg font-black"
                                         />
+
+                                        {role === 'VENDOR' && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-3 pt-2 border-t-2 border-slate-50 dark:border-slate-800 mt-2">
+                                                <Input
+                                                    label="Store Name"
+                                                    placeholder="Gopal General Store"
+                                                    value={formData.storeName}
+                                                    onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
+                                                    className="h-12 text-lg font-black"
+                                                />
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Business Category</label>
+                                                    <select
+                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-black text-sm uppercase tracking-widest outline-none focus:ring-2 ring-primary-500 transition-all"
+                                                        value={formData.businessCategory}
+                                                        onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
+                                                    >
+                                                        <option value="">Select Category</option>
+                                                        <option value="GROCERY">Grocery/Kirana</option>
+                                                        <option value="MEDICINE">Medical/Pharmacy</option>
+                                                        <option value="ELECTRONICS">Electronics/Hardware</option>
+                                                        <option value="CLOTHING">Clothing/Apparel</option>
+                                                        <option value="OTHER">Other Business</option>
+                                                    </select>
+                                                </div>
+                                            </motion.div>
+                                        )}
+
+                                        {role === 'DELIVERY' && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-3 pt-2 border-t-2 border-slate-50 dark:border-slate-800 mt-2">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Vehicle Type</label>
+                                                    <select
+                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-black text-sm uppercase tracking-widest outline-none focus:ring-2 ring-primary-500 transition-all"
+                                                        value={formData.vehicleType}
+                                                        onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                                                    >
+                                                        <option value="Bike">Bicycle/Cycle</option>
+                                                        <option value="Motorcycle">Motorcycle/Scooty</option>
+                                                        <option value="Auto">Auto Rickshaw</option>
+                                                        <option value="Other">Walking (Hyperlocal)</option>
+                                                    </select>
+                                                </div>
+                                            </motion.div>
+                                        )}
                                     </>
                                 )}
                                 <Input

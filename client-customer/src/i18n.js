@@ -62,7 +62,7 @@ const resources = {
                 restocking_soon: 'Restocking Soon',
                 price: 'Price',
                 add: 'ADD',
-                loading: 'Loading shop...',
+                loading: 'Loading...',
                 loading_bazaar: 'Loading bazaar...',
                 verified_partner: 'Verified Partner',
                 min_order: 'Min. ₹99',
