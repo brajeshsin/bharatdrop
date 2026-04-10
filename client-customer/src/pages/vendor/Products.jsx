@@ -35,8 +35,9 @@ const ProductManagement = () => {
         name: '',
         price: '',
         category: CATEGORIES[1],
-        unit: 'per kg',
-        stock: '50',
+        unit: 'KG',
+        stock: '99',
+        isOutOfStock: false,
         image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'
     });
 
@@ -72,8 +73,9 @@ const ProductManagement = () => {
                 name: product.name,
                 price: product.price,
                 category: product.category,
-                unit: product.unit || 'per unit',
-                stock: product.stock || '25',
+                unit: product.unit || 'KG',
+                stock: product.stock || '99',
+                isOutOfStock: product.isOutOfStock || false,
                 image: product.image
             });
         } else {
@@ -82,8 +84,9 @@ const ProductManagement = () => {
                 name: '',
                 price: '',
                 category: CATEGORIES[1],
-                unit: 'per kg',
-                stock: '50',
+                unit: 'KG',
+                stock: '99',
+                isOutOfStock: false,
                 image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'
             });
         }
@@ -261,47 +264,89 @@ const ProductManagement = () => {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="md:col-span-2">
-                                        <Input
-                                            label="Product Name"
-                                            placeholder="e.g. Fresh Milk 1L"
+                                <div className="space-y-8">
+                                    {/* Product Identity */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Product Identity</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Special Chicken Biryani"
+                                            className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary-800 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all uppercase tracking-widest"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         />
                                     </div>
-                                    <Input
-                                        label="Price (₹)"
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={formData.price}
-                                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                    />
-                                    <div className="space-y-1.5 flex flex-col">
-                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-widest">Category</label>
-                                        <select
-                                            className="w-full px-5 py-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-white focus:outline-none focus:border-primary-800 transition-all font-black appearance-none"
-                                            value={formData.category}
-                                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        >
-                                            {CATEGORIES.filter(c => c !== "All").map(cat => (
-                                                <option key={cat} value={cat}>{cat}</option>
-                                            ))}
-                                        </select>
+
+                                    {/* Pricing & Unit */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Pricing & Unit</label>
+                                        <div className="flex gap-3">
+                                            <div className="flex-1 relative group">
+                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary-800 dark:text-primary-400 font-black text-lg">₹</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="0.00"
+                                                    className="w-full pl-12 pr-6 py-5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary-800 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all tracking-widest"
+                                                    value={formData.price}
+                                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="flex-1 relative group">
+                                                <select
+                                                    className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary-800 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white appearance-none focus:outline-none transition-all uppercase tracking-widest cursor-pointer"
+                                                    value={formData.unit}
+                                                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                                >
+                                                    {['KG', 'LITRE', 'HALF PLATE', 'FULL PLATE', '100GM', 'PIECE', 'PACKET'].map(u => (
+                                                        <option key={u} value={u} className="bg-white dark:bg-slate-900">{u}</option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-focus-within:text-primary-800 transition-colors">
+                                                    <ArrowRight size={16} className="rotate-90" />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <Input
-                                        label="Unit"
-                                        placeholder="e.g. per kg / 500g"
-                                        value={formData.unit}
-                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                    />
-                                    <Input
-                                        label="Initial Stock"
-                                        type="number"
-                                        placeholder="0"
-                                        value={formData.stock}
-                                        onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                    />
+
+                                    {/* Visual URL */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Product Visual (URL)</label>
+                                        <div className="relative group">
+                                            <input
+                                                type="text"
+                                                placeholder="https://images.unsplash.com/..."
+                                                className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary-800 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all tracking-widest"
+                                                value={formData.image}
+                                                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Stock & Availability */}
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Stock Level</label>
+                                            <input
+                                                type="number"
+                                                placeholder="99"
+                                                className="w-full px-8 py-5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-primary-800 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none transition-all tracking-widest"
+                                                value={formData.stock}
+                                                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Availability</label>
+                                            <Button
+                                                onClick={() => setFormData({ ...formData, isOutOfStock: !formData.isOutOfStock })}
+                                                className={`w-full py-5 rounded-[2rem] font-black text-[10px] tracking-[0.2em] transition-all border-2 ${!formData.isOutOfStock
+                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800'
+                                                        : 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+                                                    }`}
+                                            >
+                                                {!formData.isOutOfStock ? 'AVAILABLE' : 'OUT OF STOCK'}
+                                            </Button>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="mt-10 flex gap-4">
