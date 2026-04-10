@@ -129,36 +129,49 @@ exports.approveRegistration = async (req, res) => {
             console.warn(`[Admin] User ${id} status was already ACTIVE or not updated`);
         }
 
-        // If Vendor, create profile in bharatdrop_admin
-        if (user.role === 'VENDOR') {
+        // If Vendor/Seller, create profile in bharatdrop_admin
+        if (user.role === 'VENDOR' || user.role === 'SELLER') {
             try {
-                const existingVendor = await Vendor.findOne({ phone: user.mobile });
+                const userPhone = user.mobile || user.phone;
+                const existingVendor = await Vendor.findOne({ phone: userPhone });
+
+                // Map category to a valid enum or default to 'Grocery'
+                const validCategories = ['Sweets & Snacks', 'Fruits & Veg', 'Grocery', 'Restaurant', 'Pharmacy', 'Meat', 'Dhaba', 'Fast Food', 'Medicine', 'Dairy'];
+                let mappedCategory = user.businessCategory || 'Grocery';
+                if (!validCategories.includes(mappedCategory)) {
+                    mappedCategory = 'Grocery';
+                }
+
                 if (existingVendor) {
-                    console.log(`[Admin] Vendor profile already exists for ${user.mobile}. Updating...`);
+                    console.log(`[Admin] Vendor profile already exists for ${userPhone}. Updating status to Active.`);
                     await Vendor.findOneAndUpdate(
-                        { phone: user.mobile },
+                        { phone: userPhone },
                         {
                             status: 'Active',
                             storeName: user.storeName || existingVendor.storeName,
-                            category: user.businessCategory || existingVendor.category
+                            category: mappedCategory
                         }
                     );
                 } else {
-                    console.log(`[Admin] Creating new Vendor profile for ${user.storeName}`);
+                    console.log(`[Admin] Creating new Vendor profile for ${user.storeName || user.name}`);
                     await Vendor.create({
                         name: user.name,
-                        storeName: user.storeName || 'My Store',
-                        category: user.businessCategory || 'Grocery',
-                        phone: user.mobile,
+                        storeName: user.storeName || user.name || 'Merchant Store',
+                        category: mappedCategory,
+                        phone: userPhone,
                         email: user.email,
-                        town: 'Rampur',
-                        address: user.address,
+                        town: user.town || 'Rampur',
+                        address: user.address || 'N/A',
                         status: 'Active'
                     });
                 }
             } catch (vendorError) {
                 console.error(`[Admin] Error during Vendor profile creation/update:`, vendorError);
-                // We still report success for user activation, but log the vendor profile error
+                // Return a combined error if vendor creation fails
+                return res.status(500).json({
+                    success: false,
+                    message: `User activated, but vendor profile creation failed: ${vendorError.message}`
+                });
             }
         }
 
