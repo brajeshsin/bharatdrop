@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         required: true,
-        enum: ['CUSTOMER', 'VENDOR', 'DELIVERY'],
+        enum: ['CUSTOMER', 'VENDOR', 'DELIVERY', 'SELLER'],
         default: 'CUSTOMER'
     },
     // Partner/Vendor Specific Fields

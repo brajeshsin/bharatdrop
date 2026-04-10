@@ -53,8 +53,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   // This eliminates the React state race condition after login
   const user = contextUser || getUserSync();
 
-  // Only show loader if truly loading AND localStorage has nothing
-  if (loading && !user) return <FullPageLoader />;
+  // Always show loader while context is initializing from backend
+  if (loading) return <FullPageLoader />;
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -71,7 +71,7 @@ const LoggedInRedirect = ({ children }) => {
 
   const user = contextUser || getUserSync();
 
-  if (loading && !user) return <FullPageLoader />;
+  if (loading) return <FullPageLoader />;
 
   if (user) {
     const targetPath = getRolePath(user.role);

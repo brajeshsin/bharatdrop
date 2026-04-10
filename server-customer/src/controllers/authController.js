@@ -176,3 +176,18 @@ exports.login = async (req, res) => {
     // Keep for legacy or if needed, but the new flow is requestOtp -> verifyOtp
     res.status(400).json({ success: false, message: 'Please use OTP login' });
 };
+
+exports.getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password -otp -otpExpires');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.json({
+            success: true,
+            user
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

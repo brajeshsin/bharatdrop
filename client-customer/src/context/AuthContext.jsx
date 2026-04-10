@@ -9,19 +9,47 @@ export const ROLES = {
     VENDOR: 'VENDOR',
     DELIVERY: 'DELIVERY',
     ADMIN: 'ADMIN',
+    SELLER: 'SELLER',
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        const saved = localStorage.getItem('vdp_user');
+        return saved ? JSON.parse(saved) : null;
+    });
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const savedUser = localStorage.getItem('vdp_user');
-        if (savedUser) {
-            setUser(JSON.parse(savedUser));
-        }
-        setLoading(false);
+        const initAuth = async () => {
+            const savedUser = localStorage.getItem('vdp_user');
+            const token = localStorage.getItem('vdp_token');
+
+            if (token) {
+                try {
+                    // Try to refresh user data from server to get latest status/role
+                    const response = await api.get('/auth/me');
+                    if (response.data.success) {
+                        setUser(response.data.user);
+                        localStorage.setItem('vdp_user', JSON.stringify(response.data.user));
+                    } else if (savedUser) {
+                        setUser(JSON.parse(savedUser));
+                    }
+                } catch (error) {
+                    console.error("Auth refresh failed:", error);
+                    if (savedUser) setUser(JSON.parse(savedUser));
+                    // If 401, token is invalid, but we'll let existing logic handle it or just clear
+                    if (error.response?.status === 401) {
+                        logout();
+                    }
+                }
+            } else if (savedUser) {
+                setUser(JSON.parse(savedUser));
+            }
+            setLoading(false);
+        };
+
+        initAuth();
     }, []);
 
     const login = async (email, password) => {
@@ -76,6 +104,7 @@ export const AuthProvider = ({ children }) => {
                 const routeMap = {
                     [ROLES.CUSTOMER]: '/home',
                     [ROLES.VENDOR]: '/merchant',
+                    [ROLES.SELLER]: '/merchant',
                     [ROLES.DELIVERY]: '/partner',
                 };
 

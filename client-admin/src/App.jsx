@@ -22,6 +22,7 @@ import AdminSettings from './pages/admin/Settings';
 import PaymentManagement from './pages/admin/PaymentManagement';
 import VendorDetail from './pages/admin/VendorDetail';
 import AddVendor from './pages/admin/AddVendor';
+import PendingApprovals from './pages/admin/PendingApprovals';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -62,6 +63,7 @@ function AppRoutes() {
         <Route path="vendors" element={<AdminVendors />} />
         <Route path="vendors/new" element={<AddVendor />} />
         <Route path="vendors/:id" element={<VendorDetail />} />
+        <Route path="pending-approvals" element={<PendingApprovals />} />
         <Route path="customers" element={<AdminCustomers />} />
         <Route path="partners" element={<AdminPartners />} />
         <Route path="partners/:id" element={<PartnerDetails />} />

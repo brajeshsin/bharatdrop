@@ -183,4 +183,37 @@ export const adminService = {
             return { success: false, message: 'Server connection failed' };
         }
     },
+    getPendingRegistrations: async () => {
+        try {
+            const response = await api.get('/customers/pending');
+            return response.data.success ? response.data.data : [];
+        } catch (error) {
+            console.error('Error fetching pending registrations:', error);
+            return [];
+        }
+    },
+    approveRegistration: async (id) => {
+        try {
+            const response = await api.post(`/customers/${id}/approve`);
+            return response.data;
+        } catch (error) {
+            console.error('Error approving registration:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Server connection failed'
+            };
+        }
+    },
+    rejectRegistration: async (id) => {
+        try {
+            const response = await api.post(`/customers/${id}/reject`);
+            return response.data;
+        } catch (error) {
+            console.error('Error rejecting registration:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Server connection failed'
+            };
+        }
+    },
 };

@@ -36,7 +36,30 @@ const VendorDashboard = () => {
                         <p className="text-xl font-black text-slate-800 dark:text-white">{user.storeName || 'My Store'}</p>
                     </div>
                 </div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estimated verification time: 24-48 Hours</p>
+                <div className="flex flex-col items-center gap-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estimated verification time: 24-48 Hours</p>
+                    <p className="text-[9px] font-bold text-primary-600 uppercase tracking-widest bg-primary-50 px-3 py-1 rounded-full">We will notify you via Email/SMS once approved</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (user?.status === 'SUSPENDED') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 uppercase tracking-tight">
+                <div className="w-24 h-24 bg-red-50 dark:bg-red-900/20 rounded-[2.5rem] flex items-center justify-center text-red-600 shadow-xl border-2 border-red-100 dark:border-red-800">
+                    <AlertCircle size={48} />
+                </div>
+                <div className="space-y-4 max-w-lg">
+                    <h1 className="text-4xl font-black text-slate-800 dark:text-white leading-tight">Registration Rejected</h1>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">
+                        We regret to inform you that your registration request for <span className="text-red-600 font-black">{user.storeName}</span> has been declined.
+                    </p>
+                </div>
+                <div className="space-y-4">
+                    <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto">Please contact our support team if you believe this is a mistake or to get more details.</p>
+                    <Button className="bg-red-600 text-white rounded-2xl">Contact Support</Button>
+                </div>
             </div>
         );
     }
