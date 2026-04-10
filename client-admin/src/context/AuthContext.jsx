@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         // Simulate checking for existing session
-        const savedUser = localStorage.getItem('vdp_user');
+        const savedUser = sessionStorage.getItem('vdp_user');
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }) => {
 
             if (data.success) {
                 setUser(data.user);
-                localStorage.setItem('vdp_user', JSON.stringify(data.user));
-                localStorage.setItem('vdp_token', data.token);
+                sessionStorage.setItem('vdp_user', JSON.stringify(data.user));
+                sessionStorage.setItem('vdp_token', data.token);
                 navigate('/admin');
                 return true;
             } else {
@@ -46,8 +46,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('vdp_user');
-        localStorage.removeItem('vdp_token');
+        sessionStorage.removeItem('vdp_user');
+        sessionStorage.removeItem('vdp_token');
         navigate('/login');
     };
 
