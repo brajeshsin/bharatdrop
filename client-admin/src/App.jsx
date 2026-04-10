@@ -82,6 +82,9 @@ function AppRoutes() {
 
       {/* Default Redirect */}
       <Route path="/" element={<Navigate to="/admin" replace />} />
+
+      {/* Catch-all Redirect */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
