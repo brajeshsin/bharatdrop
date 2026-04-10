@@ -49,7 +49,15 @@ import api from './api';
 
 // Admin API Simulation & Real Endpoints
 export const adminService = {
-    getStats: () => new Promise(resolve => setTimeout(() => resolve(ADMIN_STATS), 500)),
+    getStats: async () => {
+        try {
+            const response = await api.get('/orders/stats');
+            return response.data.success ? response.data.stats : null;
+        } catch (error) {
+            console.error('Error fetching admin stats:', error);
+            return null;
+        }
+    },
     getOrders: async () => {
         try {
             const response = await api.get('/orders');

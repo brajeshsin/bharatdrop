@@ -23,6 +23,7 @@ import PaymentManagement from './pages/admin/PaymentManagement';
 import VendorDetail from './pages/admin/VendorDetail';
 import AddVendor from './pages/admin/AddVendor';
 import PendingApprovals from './pages/admin/PendingApprovals';
+import ProductManagement from './pages/merchant/Products';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -72,6 +73,11 @@ function AppRoutes() {
         <Route path="reports" element={<AdminReports />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="payment-methods" element={<PaymentManagement />} />
+        <Route path="vendors/:id/inventory" element={
+          <div className="p-8 bg-slate-50 dark:bg-slate-950 min-h-screen">
+            <ProductManagement />
+          </div>
+        } />
       </Route>
 
       {/* Default Redirect */}

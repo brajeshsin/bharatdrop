@@ -31,5 +31,23 @@ export const vendorService = {
             console.error('Error fetching categories:', error);
             return [];
         }
+    },
+    getMyProfile: async () => {
+        try {
+            const response = await api.get('/vendors/me');
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching vendor profile:', error);
+            return { success: false, message: 'Failed to load profile' };
+        }
+    },
+    updateInventory: async (items) => {
+        try {
+            const response = await api.put('/vendors/me/inventory', { items });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating inventory:', error);
+            return { success: false, message: 'Failed to update inventory' };
+        }
     }
 };

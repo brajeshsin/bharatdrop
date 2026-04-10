@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Filter, X, Upload, Save, Package, Tag, ArrowRight, MoreVertical, ShieldAlert } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Plus, Edit2, Trash2, Search, Filter, X, Upload, Save, Package, Tag, ArrowRight, MoreVertical, ChevronLeft } from 'lucide-react';
 import { Card, Button, Input, Badge } from '../../components/common';
-import { PRODUCTS, CATEGORIES } from '../../services/mockData';
+import { CATEGORIES } from '../../services/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
-import { vendorService } from '../../services/vendorService';
+import { adminService } from '../../services/adminService';
 import { toast } from 'react-hot-toast';
 
 const ProductManagement = () => {
-    const { user } = useAuth();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [vendor, setVendor] = useState(null);
     const [myProducts, setMyProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -16,20 +18,20 @@ const ProductManagement = () => {
     const [editingProduct, setEditingProduct] = useState(null);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (user?.status === 'ACTIVE') {
-                setLoading(true);
-                const result = await vendorService.getMyProfile();
-                if (result.success) {
-                    setMyProducts(result.vendor.items || []);
-                } else {
-                    toast.error(result.message);
-                }
-                setLoading(false);
+        const fetchVendor = async () => {
+            setLoading(true);
+            const data = await adminService.getVendorById(id);
+            if (data) {
+                setVendor(data);
+                setMyProducts(data.items || []);
+            } else {
+                toast.error("Vendor not found");
+                navigate('/admin/vendors');
             }
+            setLoading(false);
         };
-        fetchProfile();
-    }, [user?.status]);
+        if (id) fetchVendor();
+    }, [id]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -39,27 +41,6 @@ const ProductManagement = () => {
         stock: '50',
         image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=400'
     });
-
-    // Block access if pending
-    if (user?.status === 'PENDING') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 uppercase tracking-tight">
-                <div className="w-24 h-24 bg-primary-50 dark:bg-primary-900/20 rounded-[2.5rem] flex items-center justify-center text-primary-800 dark:text-primary-400 shadow-xl border-2 border-primary-100 dark:border-primary-800 animate-pulse">
-                    <ShieldAlert size={48} />
-                </div>
-                <div className="space-y-4 max-w-lg">
-                    <h1 className="text-4xl font-black text-slate-800 dark:text-white leading-tight underline decoration-primary-500 decoration-8 underline-offset-8">Inventory Locked</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">
-                        Your store <span className="text-primary-800 dark:text-primary-400 font-black">{user.storeName || 'My Store'}</span> is currently under verification.
-                    </p>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">You will be able to manage your products once your account is approved.</p>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Status: Pending Admin Approval</p>
-                </div>
-            </div>
-        );
-    }
 
     const filteredProducts = myProducts.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -108,25 +89,25 @@ const ProductManagement = () => {
             updatedProducts = [newProduct, ...myProducts];
         }
 
-        const result = await vendorService.updateInventory(updatedProducts);
+        const result = await adminService.updateVendor(id, { items: updatedProducts });
         if (result.success) {
             setMyProducts(updatedProducts);
             toast.success(editingProduct ? "Product updated" : "Product added");
             setIsIdModalOpen(false);
         } else {
-            toast.error(result.message);
+            toast.error(result.message || "Failed to update inventory");
         }
     };
 
     const handleDelete = async (targetName) => {
         if (window.confirm("Are you sure you want to delete this product?")) {
             const updatedProducts = myProducts.filter(p => p.name !== targetName);
-            const result = await vendorService.updateInventory(updatedProducts);
+            const result = await adminService.updateVendor(id, { items: updatedProducts });
             if (result.success) {
                 setMyProducts(updatedProducts);
                 toast.success("Product deleted");
             } else {
-                toast.error(result.message);
+                toast.error(result.message || "Failed to delete product");
             }
         }
     };
@@ -136,11 +117,17 @@ const ProductManagement = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
+                    <button
+                        onClick={() => navigate('/admin/vendors')}
+                        className="flex items-center gap-2 text-primary-800 dark:text-primary-400 font-black text-[10px] tracking-[0.3em] uppercase mb-4 hover:translate-x-[-4px] transition-transform"
+                    >
+                        <ChevronLeft size={14} /> Back to Registry
+                    </button>
                     <div className="flex items-center gap-2 text-primary-800 dark:text-primary-400 font-black text-[10px] tracking-[0.3em] uppercase">
-                        <Package size={12} /> Inventory Management
+                        <Package size={12} /> Merchant Inventory: {vendor?.storeName || 'Loading...'}
                     </div>
                     <h1 className="text-4xl font-black text-slate-800 dark:text-white leading-none">Stock Control</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-widest leading-none mt-2">Manage your shop's items, pricing and availability</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-widest leading-none mt-2">Administrative override for vendor products</p>
                 </div>
                 <Button
                     onClick={() => handleOpenModal()}
@@ -156,7 +143,7 @@ const ProductManagement = () => {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-800 transition-colors" size={20} />
                     <input
                         type="text"
-                        placeholder="Search your inventory..."
+                        placeholder="Search vendor's inventory..."
                         className="w-full pl-16 pr-6 py-5 bg-transparent rounded-[2rem] focus:outline-none text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 transition-all uppercase tracking-widest"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -173,7 +160,7 @@ const ProductManagement = () => {
             </Card>
 
             {/* Product Table/Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 text-left">
                 <AnimatePresence mode='popLayout'>
                     {loading ? (
                         [1, 2, 3, 4, 5].map(i => (
@@ -185,51 +172,53 @@ const ProductManagement = () => {
                                 <Package size={40} />
                             </div>
                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No products found</p>
-                            <Button onClick={() => handleOpenModal()} variant="outline" className="text-[10px] rounded-xl px-6">ADD YOUR FIRST ITEM</Button>
+                            <Button onClick={() => handleOpenModal()} variant="outline" className="text-[10px] rounded-xl px-6">ADD FIRST ITEM</Button>
                         </div>
-                    ) : filteredProducts.map((product, i) => (
-                        <motion.div
-                            key={product.name}
-                            layout
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                            transition={{ duration: 0.3, delay: i * 0.05 }}
-                        >
-                            <Card className="group overflow-hidden bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 hover:border-primary-800 transition-all shadow-sm hover:shadow-xl rounded-3xl p-0 relative">
-                                <div className="relative h-40 overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                    <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                                        <div className="flex gap-2 w-full">
-                                            <Button onClick={() => handleOpenModal(product)} className="flex-1 bg-white text-slate-900 py-2 rounded-xl font-black text-[9px] tracking-widest">EDIT</Button>
-                                            <Button onClick={() => handleDelete(product.name)} className="bg-red-600 text-white py-2 px-3 rounded-xl font-black text-[9px] tracking-widest"><Trash2 size={14} /></Button>
+                    ) : (
+                        filteredProducts.map((product, i) => (
+                            <motion.div
+                                key={product.name}
+                                layout
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                                transition={{ duration: 0.3, delay: i * 0.05 }}
+                            >
+                                <Card className="group overflow-hidden bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 hover:border-primary-800 transition-all shadow-sm hover:shadow-xl rounded-2xl p-0 relative">
+                                    <div className="relative h-32 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                                            <div className="flex gap-2 w-full">
+                                                <Button onClick={() => handleOpenModal(product)} className="flex-1 bg-white text-slate-900 py-2 rounded-lg font-black text-[8px] tracking-widest">EDIT</Button>
+                                                <Button onClick={() => handleDelete(product.name)} className="bg-red-600 text-white py-2 px-2.5 rounded-lg font-black text-[8px] tracking-widest"><Trash2 size={12} /></Button>
+                                            </div>
+                                        </div>
+                                        <div className="absolute top-2 left-2">
+                                            <Badge variant="primary" className="bg-primary-800 text-white border-none shadow-lg py-0.5 px-2 rounded-md text-[7px] uppercase tracking-tighter">{product.category}</Badge>
                                         </div>
                                     </div>
-                                    <div className="absolute top-3 left-3">
-                                        <Badge variant="primary" className="bg-primary-800 text-white border-none shadow-lg py-1 px-2 rounded-lg text-[8px]">{product.category}</Badge>
-                                    </div>
-                                </div>
-                                <div className="p-4">
-                                    <div className="mb-3">
-                                        <h3 className="font-black text-slate-800 dark:text-white text-sm leading-tight uppercase tracking-tight line-clamp-1">{product.name}</h3>
-                                        <div className="flex items-center justify-between mt-1">
-                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{product.unit || 'Standard'}</p>
-                                            <p className="text-base font-black text-primary-800 dark:text-primary-400 leading-none">₹{product.price}</p>
+                                    <div className="p-3">
+                                        <div className="mb-2">
+                                            <h3 className="font-black text-slate-800 dark:text-white text-[11px] leading-tight uppercase tracking-tighter line-clamp-1">{product.name}</h3>
+                                            <div className="flex items-center justify-between mt-1">
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.1em]">{product.unit || 'Standard'}</p>
+                                                <p className="text-sm font-black text-primary-800 dark:text-primary-400 leading-none">₹{product.price}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2 border-t border-slate-50 dark:border-slate-800">
+                                            <div className="flex items-center gap-1">
+                                                <div className={`w-1 h-1 rounded-full ${Number(product.stock || 45) > 10 ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`}></div>
+                                                <span className="text-[7px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-tighter">{product.stock || '45'} STOCK</span>
+                                            </div>
+                                            <button className="text-slate-300 hover:text-primary-800 transition-colors">
+                                                <MoreVertical size={12} />
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-slate-800">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${Number(product.stock || 45) > 10 ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`}></div>
-                                            <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{product.stock || '45'} IN STOCK</span>
-                                        </div>
-                                        <button onClick={(e) => { e.stopPropagation(); /* future menu */ }} className="text-slate-300 hover:text-primary-800 transition-colors">
-                                            <MoreVertical size={14} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </Card>
-                        </motion.div>
-                    ))}
+                                </Card>
+                            </motion.div>
+                        ))
+                    )}
                 </AnimatePresence>
             </div>
 
@@ -250,11 +239,11 @@ const ProductManagement = () => {
                             exit={{ opacity: 0, scale: 0.9, y: 30 }}
                             className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[3rem] shadow-2xl overflow-hidden relative border-2 border-slate-50 dark:border-slate-800"
                         >
-                            <div className="p-8 md:p-10">
+                            <div className="p-8 md:p-10 text-left">
                                 <div className="flex items-center justify-between mb-10">
                                     <div className="space-y-1">
                                         <h2 className="text-3xl font-black text-slate-800 dark:text-white leading-none uppercase tracking-tighter">{editingProduct ? 'Edit Item' : 'New Item'}</h2>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Provide accurate details for your customers</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Adjust stock or details for this vendor</p>
                                     </div>
                                     <button onClick={() => setIsIdModalOpen(false)} className="p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl hover:bg-slate-100 transition-all text-slate-400 hover:text-red-500">
                                         <X size={20} />
@@ -284,6 +273,7 @@ const ProductManagement = () => {
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                         >
+                                            <option value="">Select Category</option>
                                             {CATEGORIES.filter(c => c !== "All").map(cat => (
                                                 <option key={cat} value={cat}>{cat}</option>
                                             ))}
@@ -316,7 +306,7 @@ const ProductManagement = () => {
                                         onClick={handleSave}
                                         className="flex-1 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] shadow-xl font-black tracking-widest text-xs flex items-center justify-center gap-2"
                                     >
-                                        {editingProduct ? 'UPDATE' : 'SAVE ITEM'} <Save size={18} />
+                                        {editingProduct ? 'OVERRIDE' : 'SAVE ITEM'} <Save size={18} />
                                     </Button>
                                 </div>
                             </div>

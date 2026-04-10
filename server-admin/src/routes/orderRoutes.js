@@ -5,12 +5,14 @@ const {
     getOrderById,
     getOrdersByGroupId,
     updateOrderStatus,
-    updatePaymentStatus
+    updatePaymentStatus,
+    getStats
 } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
+router.get('/stats', getStats);
 router.get('/', getAllOrders);
 router.get('/group/:groupId', getOrdersByGroupId);
 router.get('/:id', getOrderById);

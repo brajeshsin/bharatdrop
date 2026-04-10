@@ -22,23 +22,34 @@ exports.getVendors = async (req, res) => {
             };
         }
 
-        const count = await Vendor.countDocuments(query);
-        const vendors = await Vendor.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+        // 1. Get vendors from Admin DB (primary)
+        const adminVendors = await Vendor.find(query).sort({ createdAt: -1 });
+
+        // 2. Fallback: Get vendors from Customer DB (legacy)
+        const customerDb = mongoose.connection.useDb('bharatdrop_customer');
+        const VendorSchema = require('../models/Vendor').schema;
+        const CustomerVendor = customerDb.model('Vendor', VendorSchema);
+        const legacyVendors = await CustomerVendor.find(query).sort({ createdAt: -1 });
+
+        // Combine and unique by phone or storeName if needed, but for now just concat
+        // Ensure legacy vendors mark themselves as such or just merge
+        const allVendors = [...adminVendors, ...legacyVendors];
+
+        // Manual pagination on combined results
+        const paginatedVendors = allVendors.slice(skip, skip + parseInt(limit));
 
         res.json({
             success: true,
-            data: vendors,
+            data: paginatedVendors,
             pagination: {
-                total: count,
+                total: allVendors.length,
                 page: parseInt(page),
                 limit: parseInt(limit),
-                pages: Math.ceil(count / parseInt(limit))
+                pages: Math.ceil(allVendors.length / parseInt(limit))
             }
         });
     } catch (error) {
+        console.error('getVendors Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };
@@ -48,15 +59,27 @@ exports.getVendors = async (req, res) => {
 // @access  Private (Admin)
 exports.getVendorById = async (req, res) => {
     try {
-        const vendor = await Vendor.findById(req.params.id);
+        // 1. Check Admin DB
+        let vendor = await Vendor.findById(req.params.id);
+
+        // 2. Fallback to Customer DB
+        if (!vendor) {
+            const customerDb = mongoose.connection.useDb('bharatdrop_customer');
+            const VendorSchema = require('../models/Vendor').schema;
+            const CustomerVendor = customerDb.model('Vendor', VendorSchema);
+            vendor = await CustomerVendor.findById(req.params.id);
+        }
+
         if (!vendor) {
             return res.status(404).json({ success: false, message: 'Vendor not found' });
         }
+
         res.json({
             success: true,
             data: vendor
         });
     } catch (error) {
+        console.error('getVendorById Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

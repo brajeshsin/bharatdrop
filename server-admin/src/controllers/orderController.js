@@ -163,3 +163,41 @@ exports.updatePaymentStatus = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get dashboard stats
+// @route   GET /api/orders/stats
+// @access  Private (Admin)
+exports.getStats = async (req, res) => {
+    try {
+        const customerDb = mongoose.connection.useDb('bharatdrop_customer');
+        const Order = customerDb.model('Order', OrderSchema);
+
+        const adminDb = mongoose.connection.useDb('bharatdrop_admin');
+        const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
+
+        const [totalOrders, revenueResult, activeVendors] = await Promise.all([
+            Order.countDocuments(),
+            Order.aggregate([
+                { $match: { status: { $ne: 'CANCELLED' } } },
+                { $group: { _id: null, total: { $sum: { $ifNull: ['$total', '$amount'] } } } }
+            ]),
+            Vendor.countDocuments({ status: 'Active' })
+        ]);
+
+        const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+        const activeDeliveries = await Order.countDocuments({ status: { $in: ['ACCEPTED', 'READY', 'PICKED'] } });
+
+        res.json({
+            success: true,
+            stats: {
+                totalOrders,
+                totalRevenue,
+                activeVendors,
+                activeDeliveries
+            }
+        });
+    } catch (error) {
+        console.error('getStats Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

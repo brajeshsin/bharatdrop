@@ -106,11 +106,16 @@ const MainLayout = () => {
                     { label: t('header.profile'), path: '/home/profile', icon: User },
                 ];
             case ROLES.VENDOR:
-                return [
+                const vendorItems = [
                     { label: 'Dashboard', path: '/merchant', icon: LayoutDashboard },
                     { label: 'Inventory', path: '/merchant/products', icon: ShoppingBag },
                     { label: 'Orders', path: '/merchant/orders', icon: Truck },
                 ];
+                // Hide sensitive links if pending
+                if (user?.status === 'PENDING') {
+                    return vendorItems.filter(item => item.label === 'Dashboard');
+                }
+                return vendorItems;
             case ROLES.DELIVERY:
                 return [
                     { label: 'Deliveries', path: '/partner', icon: Truck },
@@ -216,7 +221,7 @@ const MainLayout = () => {
                                         to={item.path}
                                         className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 flex items-center gap-2 ${isActive
                                             ? 'bg-white dark:bg-slate-700 text-primary-800 dark:text-white shadow-sm'
-                                            : 'text-slate-500 hover:text-primary-800 hover:bg-white/50 dark:hover:bg-slate-800'}`}
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-primary-800 dark:hover:text-primary-400 hover:bg-white/50 dark:hover:bg-slate-800'}`}
                                     >
                                         <item.icon size={14} strokeWidth={isActive ? 3 : 2} />
                                         {item.label}
@@ -232,13 +237,13 @@ const MainLayout = () => {
                         <div className="hidden sm:flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-100 dark:border-slate-800/50 mr-2">
                             <button
                                 onClick={() => changeLanguage('en')}
-                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'en' ? 'bg-white dark:bg-slate-700 text-primary-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'en' ? 'bg-white dark:bg-slate-700 text-primary-800 dark:text-white shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 EN
                             </button>
                             <button
                                 onClick={() => changeLanguage('hi')}
-                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'hi' ? 'bg-white dark:bg-slate-700 text-primary-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${i18n.language === 'hi' ? 'bg-white dark:bg-slate-700 text-primary-800 dark:text-white shadow-sm' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'}`}
                             >
                                 HI
                             </button>

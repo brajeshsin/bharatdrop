@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Badge, Button, Input, ConfirmationModal, Select } from '../../components/common';
 import { adminService } from '../../services/adminService';
-import { Search, Plus, Store, MapPin, Phone, ShieldAlert, ShieldCheck, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Plus, Store, MapPin, Phone, ShieldAlert, ShieldCheck, Eye, Edit, Trash2, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useLoading } from '../../context/LoadingContext';
 import { toast } from 'react-hot-toast';
 
@@ -222,6 +222,14 @@ const VendorsPage = () => {
                                                     onClick={() => navigate(`/admin/vendors/${vendor._id}`, { state: { isEdit: false } })}
                                                 >
                                                     <Eye size={16} />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    className="w-10 h-10 p-0 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-900 hover:text-white dark:hover:bg-white dark:hover:text-slate-900 transition-all shadow-sm group-hover:bg-primary-50 dark:group-hover:bg-primary-900/10"
+                                                    onClick={() => navigate(`/admin/vendors/${vendor._id}/inventory`)}
+                                                    title="Manage Inventory"
+                                                >
+                                                    <ShoppingBag size={16} />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
