@@ -10,8 +10,8 @@ import { Card, Badge, Button, cn } from '../../components/common';
 import { CATEGORIES, BANNERS } from '../../services/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
 import logisticsHero from '../../assets/logistics_hero.png';
-import { getAds } from '../../services/adService';
-import AdBanner from '../../components/common/AdBanner';
+import { getAds } from '../../services/promoService';
+import PromoBanner from '../../components/common/PromoBanner';
 import { vendorService } from '../../services/vendorService';
 
 const CategoryItem = ({ cat, i, selectedCategory, setSelectedCategory }) => {
@@ -75,6 +75,7 @@ const BannerCard = ({ banner }) => {
 
 
 const CustomerHome = () => {
+    const shopSectionRef = React.useRef(null);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [ads, setAds] = useState([]);
@@ -156,7 +157,7 @@ const CustomerHome = () => {
                 </section>
 
                 {/* Categories - Swiggy Style */}
-                <section className="space-y-6">
+                <section ref={shopSectionRef} className="space-y-6 scroll-m-24">
                     <div className="flex items-center justify-between px-2">
                         <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tighter uppercase leading-none">{t('home.whats_on_mind')}</h2>
                         <button className="text-primary-800 dark:text-primary-400 font-black text-xs uppercase tracking-widest flex items-center gap-1 group">
@@ -170,7 +171,10 @@ const CustomerHome = () => {
                                 cat={cat}
                                 i={i}
                                 selectedCategory={selectedCategory}
-                                setSelectedCategory={setSelectedCategory}
+                                setSelectedCategory={(catName) => {
+                                    setSelectedCategory(catName);
+                                    shopSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }}
                             />
                         ))}
                     </div>

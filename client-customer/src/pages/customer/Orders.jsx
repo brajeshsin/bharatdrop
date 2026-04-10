@@ -164,98 +164,103 @@ const Orders = () => {
                                     exit={{ opacity: 0, scale: 0.98 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <Card className="p-0 border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 transition-all rounded-2xl overflow-hidden shadow-sm hover:shadow-xl bg-white dark:bg-slate-900 group">
-                                        {/* Card Header: Shop Identity */}
-                                        <div className="p-6 md:p-8 flex items-start justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 rounded-xl overflow-hidden border border-slate-50 dark:border-slate-800 shadow-sm relative group-hover:scale-105 transition-transform duration-500">
-                                                    <img src={order.shop.image} className="w-full h-full object-cover" alt="" />
-                                                    <div className="absolute inset-0 bg-black/5" />
+                                    <div className="relative group">
+                                        {/* Ambient Shadow */}
+                                        <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-secondary/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none" />
+                                        
+                                        <Card className="relative p-0 border border-white/40 dark:border-slate-800/60 rounded-[2rem] overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
+                                            {/* Card Header: Shop Identity */}
+                                            <div className="p-6 md:p-8 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800/80 relative">
+                                                {/* subtle background hue */}
+                                                <div className="absolute top-0 right-0 w-48 h-48 bg-primary-100/50 dark:bg-primary-900/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-125 duration-700" />
+                                                
+                                                <div className="flex items-center gap-5 z-10">
+                                                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-xl relative group-hover:scale-105 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                                                        <img src={order.shop.image} className="w-full h-full object-cover" alt="" />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                                                        <MapPin size={12} className="absolute bottom-2 left-2 text-white drop-shadow-md" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-1.5 mb-1">
+                                                            <Calendar size={12} className="text-secondary" /> {order.date}
+                                                        </p>
+                                                        <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase leading-none group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-800 group-hover:to-primary-600 transition-all">{order.shop.name}</h3>
+                                                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{order.shop.location}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight uppercase leading-none group-hover:text-primary-800 transition-colors">{order.shop.name}</h3>
-                                                    <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                                                        <MapPin size={10} /> {order.shop.location}
+                                                <div className="flex flex-col items-end gap-3 z-10">
+                                                    <span className={cn(
+                                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center gap-2",
+                                                        getStatusStyles(order.status)
+                                                    )}>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                                                        {t(`tracking.status_${order.status.toLowerCase()}`)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Card Body: Items List */}
+                                            <div className="px-6 md:px-8 py-6 bg-slate-50/50 dark:bg-slate-800/30">
+                                                <div className="space-y-3">
+                                                    {order.items.map((item, idx) => (
+                                                        <div key={idx} className="flex items-center justify-between text-sm group/item">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover/item:border-primary-500 group-hover/item:text-primary-600 transition-colors">
+                                                                    {item.qty}x
+                                                                </div>
+                                                                <span className="font-bold text-slate-700 dark:text-slate-300 group-hover/item:text-primary-800 dark:group-hover/item:text-primary-400 transition-colors">{item.name}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="h-px bg-slate-200 dark:bg-slate-700 w-12 hidden sm:block group-hover/item:bg-primary-200 transition-colors" />
+                                                                <span className="font-black text-slate-800 dark:text-white">₹{item.price * item.qty}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Card Footer: Actions & Metadata */}
+                                            <div className="px-6 py-6 md:px-8 md:py-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 relative">
+                                                <div className="flex flex-col items-center sm:items-start relative z-10">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{t('orders.total_paid')}</p>
+                                                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">
+                                                        ₹<span className="text-primary-800 dark:text-primary-400">{order.total}</span>
                                                     </p>
                                                 </div>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                                <span className={cn(
-                                                    "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
-                                                    getStatusStyles(order.status)
-                                                )}>
-                                                    {t(`tracking.status_${order.status.toLowerCase()}`)}
-                                                </span>
-                                                <button className="p-2 text-slate-300 hover:text-slate-500 transition-colors rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
-                                                    <MoreVertical size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
 
-                                        {/* Divider */}
-                                        <div className="mx-6 md:mx-8 h-px bg-slate-50 dark:bg-slate-800" />
-
-                                        {/* Card Body: Items List */}
-                                        <div className="px-6 md:px-8 py-5 space-y-3">
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{t('orders.items_label')}</p>
-                                            <div className="space-y-2">
-                                                {order.items.map((item, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="w-5 h-5 bg-slate-50 dark:bg-slate-800 rounded flex items-center justify-center text-[10px] font-black text-slate-500">{item.qty}</span>
-                                                            <span className="font-bold text-slate-600 dark:text-slate-300">{item.name}</span>
-                                                        </div>
-                                                        <span className="font-black text-slate-400 dark:text-slate-600">₹{item.price * item.qty}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Card Footer: Actions & Metadata */}
-                                        <div className="p-6 md:p-8 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-50 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6">
-                                            <div className="flex flex-col sm:items-start items-center gap-1">
-                                                <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                                                    <Calendar size={10} /> {order.date}
+                                                <div className="flex items-center gap-3 w-full sm:w-auto relative z-10">
+                                                    {order.isTrackingAvailable ? (
+                                                        <Button
+                                                            onClick={() => navigate(`/ordershistory/track/${order._id}`, {
+                                                                state: {
+                                                                    total: order.total,
+                                                                    id: order._id,
+                                                                    orderId: order.id,
+                                                                    shops: [{
+                                                                        ...order.shop,
+                                                                        items: order.items
+                                                                    }]
+                                                                }
+                                                            })}
+                                                            className="flex-1 sm:flex-none px-8 py-4 bg-gradient-to-r from-primary-800 to-primary-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary-900/20 hover:shadow-primary-900/40 hover:-translate-y-0.5 active:translate-y-0 transition-all border-none"
+                                                        >
+                                                            {t('orders.track_order')}
+                                                        </Button>
+                                                    ) : (
+                                                        <Button
+                                                            onClick={() => setSelectedOrder(order)}
+                                                            className="flex-1 sm:flex-none px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:-translate-y-0.5 transition-all border-none"
+                                                        >
+                                                            {t('orders.summary')}
+                                                        </Button>
+                                                    )}
+                                                    <button className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-transparent hover:border-emerald-500/30 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:-translate-y-0.5 transition-all shadow-sm" title="Reorder Items">
+                                                        <RotateCcw size={18} />
+                                                    </button>
                                                 </div>
-                                                <span className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('orders.total_paid')}: ₹{order.total}</span>
                                             </div>
-
-                                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                                {order.isTrackingAvailable ? (
-                                                    <Button
-                                                        onClick={() => navigate(`/ordershistory/track/${order._id}`, {
-                                                            state: {
-                                                                total: order.total,
-                                                                id: order._id,
-                                                                orderId: order.id,
-                                                                shops: [{
-                                                                    ...order.shop,
-                                                                    items: order.items
-                                                                }]
-                                                            }
-                                                        })}
-                                                        className="flex-1 sm:flex-none px-8 py-3 bg-primary-800 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-primary-900/10 hover:scale-105 active:scale-95 transition-all"
-                                                    >
-                                                        {t('orders.track_order')}
-                                                    </Button>
-                                                ) : (
-                                                    <Button
-                                                        onClick={() => setSelectedOrder(order)}
-                                                        variant="outline"
-                                                        className="flex-1 sm:flex-none px-8 py-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-[11px] font-black uppercase tracking-widest hover:border-primary-800 transition-all hover:text-primary-800"
-                                                    >
-                                                        {t('orders.summary')}
-                                                    </Button>
-                                                )}
-                                                <button className="flex items-center justify-center w-12 h-12 rounded-xl border-2 border-slate-100 dark:border-slate-800 text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-primary-800 transition-all" title="Get Help">
-                                                    <HelpCircle size={20} />
-                                                </button>
-                                                <button className="flex items-center justify-center w-12 h-12 rounded-xl border-2 border-slate-100 dark:border-slate-800 text-slate-400 hover:bg-white dark:hover:bg-slate-700 hover:text-emerald-500 transition-all" title="Reorder Items">
-                                                    <RotateCcw size={18} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </Card>
+                                        </Card>
+                                    </div>
                                 </motion.div>
                             ))}
                         </AnimatePresence>

@@ -2,7 +2,7 @@ import api from './api';
 
 export const getAds = async () => {
     try {
-        const response = await api.get('/ads');
+        const response = await api.get('/promos');
         return response.data.ads || [];
     } catch (error) {
         console.error('Error fetching ads:', error);

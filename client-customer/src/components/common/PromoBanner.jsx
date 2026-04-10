@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AdBanner = ({ ads }) => {
+const PromoBanner = ({ ads }) => {
     if (!ads || ads.length === 0) return null;
 
     return (
@@ -49,4 +49,4 @@ const AdBanner = ({ ads }) => {
     );
 };
 
-export default AdBanner;
+export default PromoBanner;

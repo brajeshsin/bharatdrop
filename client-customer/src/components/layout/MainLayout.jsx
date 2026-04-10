@@ -49,6 +49,7 @@ const MainLayout = () => {
     const [isVillagePickerOpen, setIsVillagePickerOpen] = useState(false);
     const [globalSearchQuery, setGlobalSearchQuery] = useState('');
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     // Missing Village Picker State Logic
     const villages = [
@@ -293,24 +294,27 @@ const MainLayout = () => {
 
                         <div className="h-8 w-px bg-slate-100 dark:bg-slate-800 mx-2 hidden sm:block"></div>
 
-                        <div className="flex items-center gap-3 pl-2 group cursor-pointer relative">
-                            <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-2xl border-2 border-transparent group-hover:border-primary-800 transition-all flex items-center justify-center overflow-hidden shadow-inner">
-                                <span className="font-black text-primary-800 dark:text-primary-400">{user?.name?.charAt(0)}</span>
-                            </div>
-
-                            {/* Simple Dropdown Trigger */}
-                            <div className="hidden lg:flex flex-col items-start leading-none gap-1">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{user?.role}</span>
-                                <div className="flex items-center gap-1 font-black text-sm text-slate-800 dark:text-white">
-                                    {user?.name} <ChevronDown size={14} className="text-slate-400 group-hover:rotate-180 transition-transform duration-300" />
+                        <div className="flex items-center gap-2 pl-2">
+                            <div className="hidden sm:flex items-center gap-3">
+                                <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center overflow-hidden shadow-inner">
+                                    <span className="font-black text-slate-700 dark:text-slate-300">{user?.name?.charAt(0) || 'U'}</span>
+                                </div>
+                                {/* Simple Dropdown Trigger */}
+                                <div className="hidden lg:flex flex-col items-start leading-none gap-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{user?.role}</span>
+                                    <span className="font-black text-sm text-slate-800 dark:text-white truncate max-w-[120px]">
+                                        {user?.name}
+                                    </span>
                                 </div>
                             </div>
 
                             <button
-                                onClick={logout}
-                                className="absolute -bottom-14 right-0 bg-white dark:bg-slate-800 shadow-2xl rounded-2xl p-4 border border-slate-100 dark:border-slate-700 opacity-0 scale-90 translate-y-2 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto transition-all flex items-center gap-3 text-xs font-black text-red-600 min-w-[160px] active:scale-95"
+                                onClick={() => setIsLogoutModalOpen(true)}
+                                className="sm:ml-2 p-2.5 text-red-500 hover:text-white hover:bg-red-500 dark:text-red-400 dark:hover:text-white dark:hover:bg-red-600 rounded-xl transition-all border-2 border-red-100 dark:border-red-900/30 hover:border-transparent flex items-center gap-2 active:scale-95 shadow-sm"
+                                title={t('header.sign_out')}
                             >
-                                <LogOut size={16} /> {t('header.sign_out')}
+                                <LogOut size={20} />
+                                <span className="hidden xl:inline text-[11px] font-black uppercase tracking-widest">{t('header.sign_out')}</span>
                             </button>
                         </div>
                     </div>
@@ -608,6 +612,61 @@ const MainLayout = () => {
                             >
                                 {t('header.confirm_selection')}
                             </Button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Logout Confirmation Modal */}
+            <AnimatePresence>
+                {isLogoutModalOpen && (
+                    <motion.div
+                        key="logout-modal"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsLogoutModalOpen(false)}
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] grid place-items-center p-4 sm:p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border-2 border-slate-50 dark:border-slate-800 relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none" />
+                            
+                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-500 shadow-inner ring-4 ring-white dark:ring-slate-900 relative z-10">
+                                <LogOut size={28} />
+                            </div>
+                            
+                            <h2 className="text-2xl font-black text-slate-800 dark:text-white text-center tracking-tight mb-2 uppercase relative z-10">
+                                {t('header.sign_out')}
+                            </h2>
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 text-center mb-8 relative z-10">
+                                Are you sure you want to log out of your account?
+                            </p>
+                            
+                            <div className="flex gap-4 relative z-10">
+                                <Button
+                                    onClick={() => setIsLogoutModalOpen(false)}
+                                    variant="outline"
+                                    className="flex-1 py-4 text-xs font-black tracking-widest uppercase rounded-xl"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        setIsLogoutModalOpen(false);
+                                        logout();
+                                    }}
+                                    variant="danger"
+                                    className="flex-1 py-4 text-xs font-black tracking-widest uppercase rounded-xl shadow-xl shadow-red-500/20"
+                                >
+                                    Log Out
+                                </Button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}
