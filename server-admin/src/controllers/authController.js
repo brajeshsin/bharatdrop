@@ -3,7 +3,11 @@ const jwt = require('jsonwebtoken');
 
 exports.login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        let { email, password } = req.body;
+
+        // Sanitize inputs
+        email = email?.trim().toLowerCase();
+        password = password?.trim();
 
         // Find admin by email
         const admin = await Admin.findOne({ email });

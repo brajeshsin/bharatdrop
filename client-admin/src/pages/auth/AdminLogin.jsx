@@ -18,7 +18,7 @@ const AdminLogin = () => {
         setIsLoading(true);
         setError('');
         try {
-            const success = await loginAdmin(email, password);
+            const success = await loginAdmin(email.trim().toLowerCase(), password.trim());
             if (success) {
                 toast.success('Welcome back, Administrator');
                 navigate('/admin');
@@ -69,6 +69,8 @@ const AdminLogin = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="admin@bharatdrop.in"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
                                     className="w-full bg-slate-800/50 border-2 border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white text-sm font-bold placeholder:text-slate-600 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-900/20 transition-all"
                                 />
                             </div>
