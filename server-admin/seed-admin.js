@@ -10,14 +10,12 @@ const seedAdmin = async () => {
         console.log('Connected to MongoDB');
 
         const adminEmail = 'admin@bharatdrop.com';
-        const adminPassword = 'admin123';
+        const adminPassword = 'admin@123';
 
         // Check if admin already exists
         const existingAdmin = await Admin.findOne({ email: adminEmail });
         if (existingAdmin) {
-            console.log('Admin already exists. Updating password...');
-            existingAdmin.password = adminPassword;
-            await existingAdmin.save();
+            console.log('Admin already exists. No changes made.');
         } else {
             const newAdmin = new Admin({
                 name: 'BharatDrop Administrator',
