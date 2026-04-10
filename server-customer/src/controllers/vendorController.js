@@ -54,7 +54,20 @@ exports.getMyVendorProfile = async (req, res) => {
         const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
 
         // Find vendor by user's mobile (assuming they are linked via phone)
-        const vendor = await Vendor.findOne({ phone: req.user.mobile });
+        let userMobile = req.user.mobile;
+
+        // Fallback: If mobile is missing in token, fetch from DB
+        if (!userMobile) {
+            const User = require('../models/User');
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+            return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
+
+        const vendor = await Vendor.findOne({ phone: userMobile });
         if (!vendor) {
             return res.status(404).json({ success: false, message: 'Vendor profile not found' });
         }
@@ -73,9 +86,21 @@ exports.updateVendorInventory = async (req, res) => {
         const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
 
         const { items } = req.body;
+        let userMobile = req.user.mobile;
+
+        // Fallback: If mobile is missing in token, fetch from DB
+        if (!userMobile) {
+            const User = require('../models/User');
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+            return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
 
         const vendor = await Vendor.findOneAndUpdate(
-            { phone: req.user.mobile },
+            { phone: userMobile },
             { $set: { items, updatedAt: new Date() } },
             { new: true, runValidators: true }
         );
