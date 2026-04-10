@@ -12,8 +12,12 @@ exports.login = async (req, res) => {
         // Find admin by email
         const admin = await Admin.findOne({ email });
 
-        if (admin && admin.password === password) {
-            const { password, ...adminWithoutPassword } = admin.toObject();
+        if (!admin) {
+            return res.status(401).json({ success: false, message: 'Admin account not found' });
+        }
+
+        if (admin.password === password) {
+            const { password: _, ...adminWithoutPassword } = admin.toObject();
 
             // Sign a real JWT token
             const token = jwt.sign(
@@ -28,7 +32,7 @@ exports.login = async (req, res) => {
                 token: token
             });
         } else {
-            res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+            res.status(401).json({ success: false, message: 'Incorrect password' });
         }
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

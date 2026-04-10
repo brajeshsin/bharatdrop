@@ -33,12 +33,15 @@ export const AuthProvider = ({ children }) => {
                 sessionStorage.setItem('vdp_user', JSON.stringify(data.user));
                 sessionStorage.setItem('vdp_token', data.token);
                 navigate('/admin');
-                return true;
+                return { success: true };
             } else {
-                return false;
+                return { success: false, message: data.message };
             }
         } catch (error) {
-            return false;
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Could not connect to authentication server'
+            };
         } finally {
             setLoading(false);
         }

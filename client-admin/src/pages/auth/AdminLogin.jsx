@@ -18,17 +18,17 @@ const AdminLogin = () => {
         setIsLoading(true);
         setError('');
         try {
-            const success = await loginAdmin(email.trim().toLowerCase(), password.trim());
-            if (success) {
+            const result = await loginAdmin(email.trim().toLowerCase(), password.trim());
+            if (result.success) {
                 toast.success('Welcome back, Administrator');
                 navigate('/admin');
             } else {
-                setError('Invalid admin credentials. Please try again.');
-                toast.error('Authentication failed');
+                setError(result.message || 'Invalid admin credentials. Please try again.');
+                toast.error(result.message || 'Authentication failed');
             }
         } catch (err) {
             setError('An error occurred during login.');
-            toast.error('Could not connect to authentication server');
+            toast.error('Unexpected error occurred');
         } finally {
             setIsLoading(false);
         }
