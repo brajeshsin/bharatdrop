@@ -193,6 +193,45 @@ exports.getVendorOrders = async (req, res) => {
     }
 };
 
+// @desc    Get vendor order by ID
+// @route   GET /api/orders/vendor/orders/:id
+// @access  Private (Vendor)
+exports.getVendorOrderById = async (req, res) => {
+    try {
+        let userMobile = req.user.mobile;
+        if (!userMobile) {
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+            return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
+
+        const adminDb = mongoose.connection.useDb('bharatdrop_admin');
+        const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
+        const vendor = await Vendor.findOne({ phone: userMobile });
+
+        if (!vendor) {
+            return res.status(404).json({ success: false, message: 'Vendor profile not found' });
+        }
+
+        const order = await Order.findOne({ 
+            $or: [{ _id: req.params.id }, { orderId: req.params.id }],
+            'vendor.id': vendor._id.toString() 
+        });
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+        }
+
+        res.json({ success: true, order });
+    } catch (error) {
+        console.error('Get Vendor Order By ID Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 // @desc    Update order status by vendor
 // @route   PATCH /api/orders/vendor/orders/:id/status
 // @access  Private (Vendor)

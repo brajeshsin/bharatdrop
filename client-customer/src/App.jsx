@@ -23,6 +23,7 @@ import SearchResults from './pages/customer/SearchResults';
 // Vendor Pages
 import VendorDashboard from './pages/vendor/Dashboard';
 import ProductManagement from './pages/vendor/Products';
+import VendorOrderDetails from './pages/vendor/OrderDetails';
 
 // Delivery Pages
 import DeliveryDashboard from './pages/delivery/Dashboard';
@@ -132,6 +133,7 @@ function AppRoutes() {
       }>
         <Route index element={<VendorDashboard />} />
         <Route path="products" element={<ProductManagement />} />
+        <Route path="orders/:id" element={<VendorOrderDetails />} />
       </Route>
 
       {/* Delivery Routes */}

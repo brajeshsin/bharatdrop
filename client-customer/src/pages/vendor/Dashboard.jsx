@@ -4,12 +4,14 @@ import { ORDER_STATUS } from '../../services/mockData';
 import { vendorService } from '../../services/vendorService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingBag, CreditCard, TrendingUp, AlertCircle, Clock, DollarSign, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const VendorDashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -170,7 +172,11 @@ const VendorDashboard = () => {
                         <div className="text-center py-6 text-slate-400 font-bold uppercase tracking-widest text-xs">No orders found.</div>
                     )}
                     {orders.map((order) => (
-                        <div key={order._id || order.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border-2 border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary-800 transition-all shadow-sm">
+                        <div 
+                            key={order._id || order.id} 
+                            onClick={() => navigate(`/merchant/orders/${order._id || order.id}`)}
+                            className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border-2 border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary-800 transition-all shadow-sm cursor-pointer"
+                        >
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center text-primary-800 dark:text-primary-400">
                                     <Package size={24} />
@@ -186,7 +192,22 @@ const VendorDashboard = () => {
                                     <Badge variant={order.status === 'PENDING' ? 'warning' : 'success'} className="text-[9px] mt-1 tracking-widest">{order.status}</Badge>
                                 </div>
                                 {order.status === 'PENDING' && (
-                                    <Button size="sm" onClick={() => handleUpdateStatus(order._id || order.id, 'ACCEPTED')} className="bg-primary-800 text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0">Accept</Button>
+                                    <Button 
+                                        size="sm" 
+                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'ACCEPTED'); }} 
+                                        className="bg-primary-800 text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0"
+                                    >
+                                        Accept
+                                    </Button>
+                                )}
+                                {order.status === 'ACCEPTED' && (
+                                    <Button 
+                                        size="sm" 
+                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'READY'); }} 
+                                        className="bg-secondary text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0"
+                                    >
+                                        Mark Ready
+                                    </Button>
                                 )}
                             </div>
                         </div>

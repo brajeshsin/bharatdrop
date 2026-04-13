@@ -59,6 +59,15 @@ export const vendorService = {
             return [];
         }
     },
+    getVendorOrderById: async (id) => {
+        try {
+            const response = await api.get(`/orders/vendor/orders/${id}`);
+            return response.data.success ? response.data.order : null;
+        } catch (error) {
+            console.error('Error fetching vendor order:', error);
+            return null;
+        }
+    },
     updateOrderStatus: async (orderId, status) => {
         try {
             const response = await api.patch(`/orders/vendor/orders/${orderId}/status`, { status });
