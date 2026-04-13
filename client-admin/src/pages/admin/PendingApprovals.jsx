@@ -147,8 +147,9 @@ const PendingApprovals = () => {
                                                 <div className="flex items-center gap-2 text-[11px] font-black text-slate-600 dark:text-slate-400 uppercase">
                                                     <Phone size={12} className="text-primary-500" /> {request.mobile}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-[11px] font-black text-slate-400 uppercase truncate max-w-[200px]">
-                                                    <MapPin size={12} className="text-slate-300" /> {request.address || 'Location N/A'}
+                                                <div className="flex items-start gap-2 text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase bg-slate-100 dark:bg-slate-800/50 p-2 rounded-xl mt-1">
+                                                    <MapPin size={14} className="text-secondary shrink-0 mt-0.5" /> 
+                                                    <span className="leading-snug break-words whitespace-normal max-w-[200px]">{request.address || 'Location N/A'}</span>
                                                 </div>
                                             </div>
                                         </td>

@@ -45,6 +45,11 @@ const Login = () => {
                 setError("All fields are required for registration");
                 return;
             }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                setError("Please enter a valid email address (e.g. name@example.com)");
+                return;
+            }
         }
 
         setIsSubmitting(true);
@@ -191,7 +196,7 @@ const Login = () => {
                                     <>
                                         <Input
                                             label="Full Name"
-                                            placeholder="John Doe"
+                                            placeholder="Enter Your Name"
                                             type="text"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -200,7 +205,7 @@ const Login = () => {
                                         />
                                         <Input
                                             label="Email Address"
-                                            placeholder="john@example.com"
+                                            placeholder="Enter Your Email"
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -214,6 +219,13 @@ const Login = () => {
                                                     placeholder="Gopal General Store"
                                                     value={formData.storeName}
                                                     onChange={(e) => setFormData({ ...formData, storeName: e.target.value })}
+                                                    className="h-12 text-lg font-black"
+                                                />
+                                                <Input
+                                                    label="Store Address"
+                                                    placeholder="123 Main St, Village Name"
+                                                    value={formData.address}
+                                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                                     className="h-12 text-lg font-black"
                                                 />
                                                 <div className="space-y-1.5">

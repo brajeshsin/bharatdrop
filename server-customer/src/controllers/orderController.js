@@ -160,3 +160,86 @@ exports.getOrderById = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get vendor orders
+// @route   GET /api/orders/vendor/orders
+// @access  Private (Vendor)
+exports.getVendorOrders = async (req, res) => {
+    try {
+        let userMobile = req.user.mobile;
+        if (!userMobile) {
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+            return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
+
+        const adminDb = mongoose.connection.useDb('bharatdrop_admin');
+        const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
+
+        const vendor = await Vendor.findOne({ phone: userMobile });
+        if (!vendor) {
+            return res.status(404).json({ success: false, message: 'Vendor profile not found' });
+        }
+
+        const orders = await Order.find({ 'vendor.id': vendor._id.toString() }).sort({ createdAt: -1 });
+
+        res.json({ success: true, orders });
+    } catch (error) {
+        console.error('Get Vendor Orders Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Update order status by vendor
+// @route   PATCH /api/orders/vendor/orders/:id/status
+// @access  Private (Vendor)
+exports.updateVendorOrderStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        // Include common status names across the app
+        const validStatuses = ['PENDING', 'ACCEPTED', 'READY', 'READY_FOR_PICKUP', 'PICKED', 'DELIVERED', 'CANCELLED'];
+
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ success: false, message: 'Invalid status' });
+        }
+
+        let userMobile = req.user.mobile;
+        if (!userMobile) {
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+             return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
+
+        const adminDb = mongoose.connection.useDb('bharatdrop_admin');
+        const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
+        const vendor = await Vendor.findOne({ phone: userMobile });
+
+        if (!vendor) {
+            return res.status(404).json({ success: false, message: 'Vendor profile not found' });
+        }
+
+        const order = await Order.findOne({ 
+            _id: req.params.id,
+            'vendor.id': vendor._id.toString()
+        });
+
+        if (!order) {
+             return res.status(404).json({ success: false, message: 'Order not found or unauthorized' });
+        }
+
+        order.status = status;
+        order.statusTimeline.push({ status, timestamp: new Date() });
+        await order.save();
+
+        res.json({ success: true, message: `Order status updated to ${status}`, order });
+    } catch (error) {
+        console.error('Update Vendor Order Status Error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

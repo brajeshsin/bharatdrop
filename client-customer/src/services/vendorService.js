@@ -49,5 +49,23 @@ export const vendorService = {
             console.error('Error updating inventory:', error);
             return { success: false, message: 'Failed to update inventory' };
         }
+    },
+    getVendorOrders: async () => {
+        try {
+            const response = await api.get('/orders/vendor/orders');
+            return response.data.success ? response.data.orders : [];
+        } catch (error) {
+            console.error('Error fetching vendor orders:', error);
+            return [];
+        }
+    },
+    updateOrderStatus: async (orderId, status) => {
+        try {
+            const response = await api.patch(`/orders/vendor/orders/${orderId}/status`, { status });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            return { success: false, message: 'Failed to update order status' };
+        }
     }
 };

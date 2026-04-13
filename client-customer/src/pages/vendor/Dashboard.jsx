@@ -1,44 +1,113 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Badge, Button } from '../../components/common';
 import { ORDER_STATUS } from '../../services/mockData';
+import { vendorService } from '../../services/vendorService';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-hot-toast';
 import { Package, ShoppingBag, CreditCard, TrendingUp, AlertCircle, Clock, DollarSign, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const VendorDashboard = () => {
     const { user } = useAuth();
-    const myOrders = [
-        { id: '#ORD-101', customer: 'Brajesh Singh', status: ORDER_STATUS.PLACED, total: 450, items: 3, time: '2 mins ago' },
-        { id: '#ORD-102', customer: 'Amit Kumar', status: ORDER_STATUS.ACCEPTED, total: 120, items: 1, time: '15 mins ago' },
-        { id: '#ORD-103', customer: 'Priya Sharma', status: ORDER_STATUS.READY_FOR_PICKUP, total: 890, items: 5, time: '1 hour ago' },
-    ];
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (user?.status !== 'PENDING' && user?.status !== 'SUSPENDED') {
+            fetchOrders();
+        }
+    }, [user?.status]);
+
+    const fetchOrders = async () => {
+        const data = await vendorService.getVendorOrders();
+        setOrders(data);
+        setLoading(false);
+    };
+
+    const handleUpdateStatus = async (orderId, newStatus) => {
+        const result = await vendorService.updateOrderStatus(orderId, newStatus);
+        if (result.success !== false) {
+            toast.success(`Order accepted`);
+            fetchOrders();
+        } else {
+            toast.error(result.message || 'Failed to update order');
+        }
+    };
+
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const todayOrders = orders.filter(o => new Date(o.createdAt || new Date()) >= todayStart).length;
+    const totalEarnings = orders.filter(o => o.status !== 'CANCELLED').reduce((acc, curr) => acc + (curr.total || 0), 0);
 
     const stats = [
-        { label: 'Today Orders', value: '12', icon: Package, color: 'bg-primary-800' },
-        { label: 'Total Earnings', value: '₹4,520', icon: DollarSign, color: 'bg-emerald-600' },
-        { label: 'Rating', value: '4.5', icon: TrendingUp, color: 'bg-secondary' },
+        { label: 'Today Orders', value: todayOrders.toString(), icon: Package, color: 'bg-primary-800' },
+        { label: 'Total Earnings', value: `₹${totalEarnings}`, icon: DollarSign, color: 'bg-emerald-600' },
+        { label: 'Rating', value: '4.8', icon: TrendingUp, color: 'bg-secondary' },
     ];
 
     if (user?.status === 'PENDING') {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 uppercase tracking-tight">
-                <div className="w-24 h-24 bg-primary-50 dark:bg-primary-900/20 rounded-[2.5rem] flex items-center justify-center text-primary-800 dark:text-primary-400 shadow-xl border-2 border-primary-100 dark:border-primary-800 animate-bounce">
-                    <ShieldAlert size={48} />
-                </div>
-                <div className="space-y-4 max-w-lg">
-                    <h1 className="text-4xl font-black text-slate-800 dark:text-white leading-tight underline decoration-primary-500 decoration-8 underline-offset-8">Account Under Review</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">
-                        Hello, <span className="text-primary-800 dark:text-primary-400 font-black">{user.name}</span>! Your request to join as a <span className="text-secondary font-black">Merchant</span> is being reviewed by our team.
-                    </p>
-                    <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-50 dark:border-slate-800 shadow-sm inline-block">
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 font-sans">Registered Store</p>
-                        <p className="text-xl font-black text-slate-800 dark:text-white">{user.storeName || 'My Store'}</p>
-                    </div>
-                </div>
-                <div className="flex flex-col items-center gap-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estimated verification time: 24-48 Hours</p>
-                    <p className="text-[9px] font-bold text-primary-600 uppercase tracking-widest bg-primary-50 px-3 py-1 rounded-full">We will notify you via Email/SMS once approved</p>
+            <div className="relative flex flex-col items-center justify-center min-h-[80vh] w-full overflow-hidden p-4">
+                {/* Immersive background without boundaries */}
+                <div className="absolute inset-0 pointer-events-none -z-10"></div>
+                <div className="absolute -top-40 -left-40 w-96 h-96 bg-primary-100 dark:bg-primary-900/30 rounded-full blur-[100px] opacity-60"></div>
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px] opacity-60"></div>
+
+                <div className="w-full max-w-5xl px-6 relative z-10 flex flex-col items-center text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="flex flex-col items-center w-full"
+                    >
+                        <div className="relative mb-12 flex justify-center">
+                            <div className="absolute inset-0 bg-primary-200 dark:bg-primary-900/40 blur-3xl animate-pulse rounded-full"></div>
+                            <Clock size={64} className="text-primary-400 dark:text-primary-500 relative z-10 animate-bounce" />
+                        </div>
+
+                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-800 dark:text-white uppercase tracking-tighter mb-6 leading-[0.9]">
+                            Account <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary">Under Review</span>
+                        </h1>
+
+                        <p className="text-xl md:text-2xl font-bold text-slate-500 dark:text-slate-400 mb-20 max-w-3xl leading-relaxed">
+                            Hello, <span className="text-primary-800 dark:text-primary-400 font-black">{user.name}</span>! Your request to join as a <span className="text-slate-800 dark:text-white font-black underline decoration-secondary decoration-8 underline-offset-8">Merchant</span> is being reviewed by our team.
+                        </p>
+
+                        <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-16 md:gap-32 mb-20 relative">
+                            {/* Connector line behind */}
+                            <div className="absolute top-1/3 left-[20%] w-[60%] h-1 bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent hidden md:block -z-10"></div>
+
+                            <div className="flex flex-col items-center text-center group">
+                                <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-[2.5rem] flex items-center justify-center shadow-2xl mb-6 text-primary-600 dark:text-primary-400 group-hover:-translate-y-2 transition-transform duration-300">
+                                    <Package size={40} />
+                                </div>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Registered Store</p>
+                                <p className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{user.storeName || 'My Store'}</p>
+                            </div>
+
+                            <div className="flex flex-col items-center text-center group">
+                                <div className="w-24 h-24 bg-yellow-400 dark:bg-yellow-500 rounded-[2.5rem] flex items-center justify-center shadow-2xl mb-6 text-slate-900 border-4 border-white dark:border-slate-900 ring-8 ring-yellow-400/20 group-hover:-translate-y-2 transition-transform duration-300">
+                                    <ShieldAlert size={40} className="animate-pulse" />
+                                </div>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Current Status</p>
+                                <p className="text-3xl font-black text-yellow-600 dark:text-yellow-500 uppercase tracking-tight">Pending Approval</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-4 text-sm md:text-base font-black uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 px-8 py-6 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800">
+                            <span className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                                <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                                Estimated time: <span className="text-slate-800 dark:text-white">24-48 Hours</span>
+                            </span>
+                            <span className="hidden md:inline text-slate-200 dark:text-slate-700 mx-4">|</span>
+                            <span className="flex items-center gap-3 text-primary-600 dark:text-primary-400">
+                                <span className="w-2 h-2 rounded-full bg-primary-400 animate-ping"></span>
+                                Notification via Email/SMS
+                            </span>
+                        </div>
+                    </motion.div>
                 </div>
             </div>
         );
@@ -97,23 +166,28 @@ const VendorDashboard = () => {
                 {/* Orders List */}
                 <div className="space-y-4">
                     <h2 className="text-xl font-black text-slate-800 dark:text-white px-1 border-b-2 border-primary-50 dark:border-primary-900/20 pb-2">New Orders</h2>
-                    {myOrders.map((order) => (
-                        <div key={order.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border-2 border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary-800 transition-all shadow-sm">
+                    {orders.length === 0 && !loading && (
+                        <div className="text-center py-6 text-slate-400 font-bold uppercase tracking-widest text-xs">No orders found.</div>
+                    )}
+                    {orders.map((order) => (
+                        <div key={order._id || order.id} className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border-2 border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary-800 transition-all shadow-sm">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/30 rounded-2xl flex items-center justify-center text-primary-800 dark:text-primary-400">
                                     <Package size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-text-base dark:text-white text-lg leading-tight uppercase tracking-tight">{order.id}</h3>
-                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">{order.customer} • {order.items} Items</p>
+                                    <h3 className="font-black text-text-base dark:text-white text-lg leading-tight uppercase tracking-tight">{order.orderId || order._id}</h3>
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">{order.customer?.name} • {order.items?.length || 0} Items</p>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto mt-4 md:mt-0">
-                                <div className="text-right">
-                                    <p className="text-lg font-black text-text-base dark:text-white">₹{order.total}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{order.time}</p>
+                                <div className="text-right flex flex-col items-end">
+                                    <p className="text-lg font-black text-text-base dark:text-white">₹{order.total || order.subtotal}</p>
+                                    <Badge variant={order.status === 'PENDING' ? 'warning' : 'success'} className="text-[9px] mt-1 tracking-widest">{order.status}</Badge>
                                 </div>
-                                <Button size="sm" className="bg-primary-800 text-white rounded-xl uppercase tracking-widest text-[10px] px-6">Accept</Button>
+                                {order.status === 'PENDING' && (
+                                    <Button size="sm" onClick={() => handleUpdateStatus(order._id || order.id, 'ACCEPTED')} className="bg-primary-800 text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0">Accept</Button>
+                                )}
                             </div>
                         </div>
                     ))}
