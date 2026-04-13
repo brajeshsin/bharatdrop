@@ -56,7 +56,15 @@ const vendorSchema = new mongoose.Schema({
         unit: { type: String },
         stock: { type: Number, default: 99 },
         isOutOfStock: { type: Boolean, default: false }
-    }]
+    shopStatus: {
+        type: String,
+        enum: ['OPEN', 'CLOSED', 'CUSTOM'],
+        default: 'OPEN'
+    },
+    customTimings: {
+        from: { type: String, default: '09:00' },
+        to: { type: String, default: '21:00' }
+    }
 }, { timestamps: true });
 
 vendorSchema.pre('save', async function () {

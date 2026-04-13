@@ -14,17 +14,47 @@ const VendorDashboard = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [shopStatus, setShopStatus] = useState('OPEN');
+    const [customFrom, setCustomFrom] = useState('09:00');
+    const [customTo, setCustomTo] = useState('21:00');
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
     useEffect(() => {
         if (user?.status !== 'PENDING' && user?.status !== 'SUSPENDED') {
             fetchOrders();
+            fetchVendorProfile();
         }
     }, [user?.status]);
+
+    const fetchVendorProfile = async () => {
+        const data = await vendorService.getMyProfile();
+        if (data && data.success && data.vendor) {
+            setShopStatus(data.vendor.shopStatus || 'OPEN');
+            if (data.vendor.customTimings?.from) setCustomFrom(data.vendor.customTimings.from);
+            if (data.vendor.customTimings?.to) setCustomTo(data.vendor.customTimings.to);
+        }
+    };
 
     const fetchOrders = async () => {
         const data = await vendorService.getVendorOrders();
         setOrders(data);
         setLoading(false);
+    };
+
+    const handleShopStatusUpdate = async (newStatus, from = customFrom, to = customTo) => {
+        setIsUpdatingStatus(true);
+        setShopStatus(newStatus);
+        if (from) setCustomFrom(from);
+        if (to) setCustomTo(to);
+        
+        const payload = { shopStatus: newStatus, customTimings: { from, to } };
+        const result = await vendorService.updateShopStatus(payload);
+        setIsUpdatingStatus(false);
+        if (result && result.success) {
+            toast.success('Shop status updated successfully');
+        } else {
+            toast.error(result?.message || 'Failed to update shop status');
+        }
     };
 
     const handleUpdateStatus = async (orderId, newStatus) => {
@@ -142,8 +172,39 @@ const VendorDashboard = () => {
                     <h1 className="text-3xl font-black text-text-base dark:text-white leading-tight">Vendor Panel</h1>
                     <p className="text-slate-500 dark:text-slate-400 font-bold">Welcome, <span className="text-primary-800 dark:text-primary-400 font-black">{user?.storeName || user?.name}</span></p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Badge variant="success" className="bg-primary-800 text-white border-none py-2 px-4 shadow-lg ring-4 ring-primary-50">Shop: Open</Badge>
+                <div className="flex flex-col items-end gap-2 relative">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-1 shadow-sm">
+                        <select 
+                            value={shopStatus} 
+                            onChange={(e) => handleShopStatusUpdate(e.target.value)}
+                            disabled={isUpdatingStatus}
+                            className={`px-4 py-2 font-black text-[10px] tracking-widest uppercase rounded-xl outline-none transition-colors border-none cursor-pointer ${
+                                shopStatus === 'OPEN' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                                shopStatus === 'CLOSED' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                            }`}
+                        >
+                            <option value="OPEN" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Shop: Open</option>
+                            <option value="CLOSED" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Shop: Closed</option>
+                            <option value="CUSTOM" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Custom Hours</option>
+                        </select>
+                    </div>
+                    {shopStatus === 'CUSTOM' && (
+                        <div className="flex flex-col md:flex-row items-center gap-2 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-2 shadow-lg md:absolute md:top-full mt-1 md:w-[260px] md:right-0 z-50">
+                            <input 
+                                type="time" 
+                                value={customFrom}
+                                onChange={(e) => handleShopStatusUpdate('CUSTOM', e.target.value, customTo)}
+                                className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white px-2 py-1.5 rounded-lg outline-none text-xs w-full font-black tracking-widest border border-slate-200 dark:border-slate-700 focus:border-primary-500"
+                            />
+                            <span className="text-slate-400 font-bold text-[10px]">TO</span>
+                            <input 
+                                type="time" 
+                                value={customTo}
+                                onChange={(e) => handleShopStatusUpdate('CUSTOM', customFrom, e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white px-2 py-1.5 rounded-lg outline-none text-xs w-full font-black tracking-widest border border-slate-200 dark:border-slate-700 focus:border-primary-500"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -7,9 +7,11 @@ import { Button, Badge } from '../../components/common';
 import { vendorService } from '../../services/vendorService';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
+const ProductCard = ({ product, index, cart, addToCart, removeFromCart, isClosed }) => {
     const { t } = useTranslation();
     const [imageError, setImageError] = useState(false);
+
+    const isUnavailable = isClosed || product.isOutOfStock || product.stock <= 0;
 
     return (
         <motion.div
@@ -38,11 +40,11 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                     </Badge>
                 </div>
 
-                {(product.isOutOfStock || product.stock <= 0) && (
+                {isUnavailable && (
                     <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex items-center justify-center p-6 text-center z-10">
                         <div className="border-4 border-white/20 p-4 rounded-3xl">
-                            <p className="text-white font-black text-xl uppercase tracking-tighter italic leading-none">{t('shop.sold_out')}</p>
-                            <p className="text-white/60 text-[8px] font-bold uppercase tracking-widest mt-2 px-2">{t('shop.restocking_soon')}</p>
+                            <p className="text-white font-black text-xl uppercase tracking-tighter italic leading-none">{isClosed ? 'SHOP CLOSED' : t('shop.sold_out')}</p>
+                            <p className="text-white/60 text-[8px] font-bold uppercase tracking-widest mt-2 px-2">{isClosed ? 'Come back later' : t('shop.restocking_soon')}</p>
                         </div>
                     </div>
                 )}
@@ -80,13 +82,13 @@ const ProductCard = ({ product, index, cart, addToCart, removeFromCart }) => {
                         ) : (
                             <button
                                 onClick={() => addToCart(product)}
-                                disabled={product.isOutOfStock || product.stock <= 0}
-                                className={`h-12 px-6 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 ${(product.isOutOfStock || product.stock <= 0)
+                                disabled={isUnavailable}
+                                className={`h-12 px-6 rounded-2xl font-black shadow-lg active:scale-95 transition-all text-[10px] uppercase tracking-widest flex items-center gap-2 ${isUnavailable
                                     ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
                                     : "bg-primary-800 text-white hover:bg-primary-900 shadow-primary-800/10"
                                     }`}
                             >
-                                <Plus size={14} strokeWidth={3} /> {(product.isOutOfStock || product.stock <= 0) ? t('shop.sold_out') : t('shop.add')}
+                                <Plus size={14} strokeWidth={3} /> {isClosed ? 'CLOSED' : ((product.isOutOfStock || product.stock <= 0) ? t('shop.sold_out') : t('shop.add'))}
                             </button>
                         )}
                     </div>
@@ -156,12 +158,22 @@ const ShopDetails = () => {
                     <div className="flex items-center justify-center md:justify-start gap-2">
                         <Badge className="bg-secondary text-primary-900 border-none font-black px-3 py-1 text-[10px] uppercase tracking-widest leading-none">{t('shop.verified_partner')}</Badge>
                         <div className="flex items-center gap-1 bg-primary-50 dark:bg-primary-900/30 px-2 py-1 rounded-lg text-primary-800 dark:text-primary-400 font-black text-[10px]">
-                            <Star size={12} fill="currentColor" /> {shop.rating}
+                            <Star size={12} fill="currentColor" /> {shop.rating || 'New'}
                         </div>
                     </div>
-                    <h2 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{shop.name}</h2>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">{shop.name}</h2>
+                        {shop.shopStatus === 'CLOSED' && (
+                            <Badge className="mt-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-none px-4 py-1 tracking-widest uppercase font-black text-[10px]">CURRENTLY CLOSED</Badge>
+                        )}
+                    </div>
                     <div className="flex items-center justify-center md:justify-start gap-4 text-slate-400 font-bold text-xs uppercase tracking-widest">
-                        <div className="flex items-center gap-1.5"><Clock size={14} className="text-primary-800" /> {shop.time}</div>
+                        <div className="flex items-center gap-1.5">
+                            <Clock size={14} className={shop.shopStatus === 'CLOSED' ? 'text-red-500' : 'text-primary-800'} /> 
+                            {shop.shopStatus === 'CUSTOM' && shop.customTimings 
+                                ? `${shop.customTimings.from} - ${shop.customTimings.to}` 
+                                : shop.shopStatus === 'CLOSED' ? 'Closed Today' : 'Now Open'}
+                        </div>
                         <div className="flex items-center gap-1.5"><Tag size={14} className="text-primary-800" /> {t('shop.min_order')}</div>
                     </div>
                 </div>
@@ -191,6 +203,7 @@ const ShopDetails = () => {
                             cart={shopCartItems}
                             addToCart={addToCart}
                             removeFromCart={removeFromCart}
+                            isClosed={shop?.shopStatus === 'CLOSED'}
                         />
                     ))}
                 </div>

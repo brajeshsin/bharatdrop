@@ -202,9 +202,17 @@ const VendorsPage = () => {
                                                 {vendor.phone}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-7 text-left">
-                                            <Badge variant={vendor.status === 'Active' ? 'success' : 'error'} className="font-black px-4 py-1.5 tracking-widest text-[9px] rounded-xl shadow-sm">
+                                        <td className="px-6 py-7 text-left space-y-2">
+                                            <Badge variant={vendor.status === 'Active' ? 'success' : 'error'} className="font-black px-4 py-1.5 tracking-widest text-[9px] rounded-xl shadow-sm block text-center">
                                                 {vendor.status}
+                                            </Badge>
+                                            <Badge className={`font-black px-2 py-1 tracking-widest text-[8px] rounded-lg shadow-sm border-none block text-center mb-1 ${
+                                                (!vendor.shopStatus || vendor.shopStatus === 'OPEN') ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30' : 
+                                                vendor.shopStatus === 'CLOSED' ? 'bg-red-50 text-red-600 dark:bg-red-900/30' : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30'
+                                            }`}>
+                                                {vendor.shopStatus === 'CUSTOM' && vendor.customTimings
+                                                    ? `${vendor.customTimings.from}-${vendor.customTimings.to}` 
+                                                    : vendor.shopStatus || 'OPEN'}
                                             </Badge>
                                         </td>
                                         <td className="px-10 py-7 text-right">

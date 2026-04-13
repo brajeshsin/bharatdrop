@@ -118,3 +118,56 @@ exports.updateVendorInventory = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Update vendor shop status (Open/Closed/Custom)
+// @route   PATCH /api/vendors/me/shop-status
+// @access  Private (Vendor)
+exports.updateShopStatus = async (req, res) => {
+    try {
+        const adminDb = mongoose.connection.useDb('bharatdrop_admin');
+        const Vendor = adminDb.model('Vendor', require('../models/Vendor').schema);
+
+        const { shopStatus, customTimings } = req.body;
+        let userMobile = req.user.mobile;
+
+        // Fallback: If mobile is missing in token, fetch from DB
+        if (!userMobile) {
+            const User = require('../models/User');
+            const user = await User.findById(req.user.id);
+            if (user) userMobile = user.mobile;
+        }
+
+        if (!userMobile) {
+            return res.status(401).json({ success: false, message: 'User identification failed' });
+        }
+
+        // Validate shopStatus
+        if (!['OPEN', 'CLOSED', 'CUSTOM'].includes(shopStatus)) {
+            return res.status(400).json({ success: false, message: 'Invalid shop status provided' });
+        }
+
+        const updateData = { shopStatus };
+        if (shopStatus === 'CUSTOM' && customTimings) {
+            updateData.customTimings = customTimings;
+        }
+
+        const vendor = await Vendor.findOneAndUpdate(
+            { phone: userMobile },
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+
+        if (!vendor) {
+            return res.status(404).json({ success: false, message: 'Vendor profile not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Shop status updated successfully',
+            shopStatus: vendor.shopStatus,
+            customTimings: vendor.customTimings
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

@@ -47,6 +47,15 @@ export const vendorService = {
             return response.data;
         } catch (error) {
             console.error('Error updating inventory:', error);
+            return { success: false, message: error?.response?.data?.message || 'Failed to update inventory' };
+        }
+    },
+    updateShopStatus: async (statusData) => {
+        try {
+            const response = await api.patch('/vendors/me/shop-status', statusData);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating inventory:', error);
             return { success: false, message: 'Failed to update inventory' };
         }
     },
