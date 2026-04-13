@@ -56,6 +56,7 @@ const vendorSchema = new mongoose.Schema({
         unit: { type: String },
         stock: { type: Number, default: 99 },
         isOutOfStock: { type: Boolean, default: false }
+    }],
     shopStatus: {
         type: String,
         enum: ['OPEN', 'CLOSED', 'CUSTOM'],
