@@ -198,8 +198,13 @@ const VendorOrderDetails = () => {
                                         <MapPin size={18} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black tracking-widest text-slate-400 mb-1">Dilvery To</p>
-                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300 capitalize">{order.deliveryAddress}</p>
+                                        <p className="text-[10px] font-black tracking-widest text-slate-400 mb-1">Delivery To</p>
+                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-300 capitalize">
+                                            {order.deliveryAddress.address}
+                                            {order.deliveryAddress.village ? `, ${order.deliveryAddress.village}` : ''}
+                                            {order.deliveryAddress.landmark ? ` (${order.deliveryAddress.landmark})` : ''}
+                                            {order.deliveryAddress.pincode ? ` - ${order.deliveryAddress.pincode}` : ''}
+                                        </p>
                                     </div>
                                 </div>
                             )}
