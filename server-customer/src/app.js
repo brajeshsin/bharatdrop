@@ -7,6 +7,7 @@ const vendorRoutes = require('./routes/vendorRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

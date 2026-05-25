@@ -46,7 +46,7 @@ const VendorDashboard = () => {
         setShopStatus(newStatus);
         if (from) setCustomFrom(from);
         if (to) setCustomTo(to);
-        
+
         const payload = { shopStatus: newStatus, customTimings: { from, to } };
         const result = await vendorService.updateShopStatus(payload);
         setIsUpdatingStatus(false);
@@ -68,7 +68,7 @@ const VendorDashboard = () => {
     };
 
     const todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
+    todayStart.setHours(0, 0, 0, 0);
     const todayOrders = orders.filter(o => new Date(o.createdAt || new Date()) >= todayStart).length;
     const totalEarnings = orders.filter(o => o.status !== 'CANCELLED').reduce((acc, curr) => acc + (curr.total || 0), 0);
 
@@ -159,7 +159,7 @@ const VendorDashboard = () => {
                 </div>
                 <div className="space-y-4">
                     <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto">Please contact our support team if you believe this is a mistake or to get more details.</p>
-                    <Button className="bg-red-600 text-white rounded-2xl">Contact Support</Button>
+                    <Button onClick={() => navigate('/merchant/support')} className="bg-red-600 text-white rounded-2xl">Contact Support</Button>
                 </div>
             </div>
         );
@@ -169,36 +169,35 @@ const VendorDashboard = () => {
         <div className="space-y-8 animate-fade-in pb-10 uppercase tracking-tight">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-text-base dark:text-white leading-tight">Vendor Panel</h1>
+                    <h1 className="text-3xl font-black text-text-base dark:text-white leading-tight">Vendor fhfhfPanel</h1>
                     <p className="text-slate-500 dark:text-slate-400 font-bold">Welcome, <span className="text-primary-800 dark:text-primary-400 font-black">{user?.storeName || user?.name}</span></p>
                 </div>
                 <div className="flex flex-col items-end gap-2 relative">
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-1 shadow-sm">
-                        <select 
-                            value={shopStatus} 
+                        <select
+                            value={shopStatus}
                             onChange={(e) => handleShopStatusUpdate(e.target.value)}
                             disabled={isUpdatingStatus}
-                            className={`px-4 py-2 font-black text-[10px] tracking-widest uppercase rounded-xl outline-none transition-colors border-none cursor-pointer ${
-                                shopStatus === 'OPEN' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 
+                            className={`px-4 py-2 font-black text-[10px] tracking-widest uppercase rounded-xl outline-none transition-colors border-none cursor-pointer ${shopStatus === 'OPEN' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' :
                                 shopStatus === 'CLOSED' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
-                            }`}
+                                }`}
                         >
                             <option value="OPEN" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Shop: Open</option>
                             <option value="CLOSED" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Shop: Closed</option>
-                            <option value="CUSTOM" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Custom Hours</option>
+                            {/* <option value="CUSTOM" className="bg-white text-slate-800 dark:bg-slate-800 dark:text-white">Custom Hours</option> */}
                         </select>
                     </div>
                     {shopStatus === 'CUSTOM' && (
                         <div className="flex flex-col md:flex-row items-center gap-2 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-2 shadow-lg md:absolute md:top-full mt-1 md:w-[260px] md:right-0 z-50">
-                            <input 
-                                type="time" 
+                            <input
+                                type="time"
                                 value={customFrom}
                                 onChange={(e) => handleShopStatusUpdate('CUSTOM', e.target.value, customTo)}
                                 className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white px-2 py-1.5 rounded-lg outline-none text-xs w-full font-black tracking-widest border border-slate-200 dark:border-slate-700 focus:border-primary-500"
                             />
                             <span className="text-slate-400 font-bold text-[10px]">TO</span>
-                            <input 
-                                type="time" 
+                            <input
+                                type="time"
                                 value={customTo}
                                 onChange={(e) => handleShopStatusUpdate('CUSTOM', customFrom, e.target.value)}
                                 className="bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white px-2 py-1.5 rounded-lg outline-none text-xs w-full font-black tracking-widest border border-slate-200 dark:border-slate-700 focus:border-primary-500"
@@ -233,8 +232,8 @@ const VendorDashboard = () => {
                         <div className="text-center py-6 text-slate-400 font-bold uppercase tracking-widest text-xs">No orders found.</div>
                     )}
                     {orders.map((order) => (
-                        <div 
-                            key={order._id || order.id} 
+                        <div
+                            key={order._id || order.id}
                             onClick={() => navigate(`/merchant/orders/${order._id || order.id}`)}
                             className="bg-white dark:bg-slate-900 rounded-[2rem] p-5 border-2 border-slate-50 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-primary-800 transition-all shadow-sm cursor-pointer"
                         >
@@ -253,18 +252,18 @@ const VendorDashboard = () => {
                                     <Badge variant={order.status === 'PENDING' ? 'warning' : 'success'} className="text-[9px] mt-1 tracking-widest">{order.status}</Badge>
                                 </div>
                                 {order.status === 'PENDING' && (
-                                    <Button 
-                                        size="sm" 
-                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'ACCEPTED'); }} 
+                                    <Button
+                                        size="sm"
+                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'ACCEPTED'); }}
                                         className="bg-primary-800 text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0"
                                     >
                                         Accept
                                     </Button>
                                 )}
                                 {order.status === 'ACCEPTED' && (
-                                    <Button 
-                                        size="sm" 
-                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'READY'); }} 
+                                    <Button
+                                        size="sm"
+                                        onClick={(e) => { e.stopPropagation(); handleUpdateStatus(order._id || order.id, 'READY'); }}
                                         className="bg-secondary text-white rounded-xl uppercase tracking-widest text-[10px] px-6 shrink-0"
                                     >
                                         Mark Ready

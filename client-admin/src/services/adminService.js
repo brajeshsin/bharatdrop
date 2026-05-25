@@ -224,4 +224,49 @@ export const adminService = {
             };
         }
     },
+    getTickets: async (params = {}) => {
+        try {
+            const response = await api.get('/tickets', { params });
+            return response.data.success ? response.data.tickets : [];
+        } catch (error) {
+            console.error('Error fetching support tickets:', error);
+            return [];
+        }
+    },
+    getTicketById: async (id) => {
+        try {
+            const response = await api.get(`/tickets/${id}`);
+            return response.data.success ? response.data.ticket : null;
+        } catch (error) {
+            console.error('Error fetching ticket details:', error);
+            return null;
+        }
+    },
+    updateTicket: async (id, data) => {
+        try {
+            const response = await api.put(`/tickets/${id}`, data);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating ticket:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
+    replyToTicket: async (id, message, status) => {
+        try {
+            const response = await api.post(`/tickets/${id}/messages`, { message, status });
+            return response.data;
+        } catch (error) {
+            console.error('Error sending reply to ticket:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
+    sendTypingStatus: async (id, isTyping) => {
+        try {
+            const response = await api.post(`/tickets/${id}/typing`, { isTyping });
+            return response.data;
+        } catch (error) {
+            console.error('Error sending typing status:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    }
 };

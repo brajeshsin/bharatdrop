@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Badge, Button } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
 import { MapPin, Package, Phone, CheckCircle2, Navigation, CircleDot, AlertCircle, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const DeliveryDashboard = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const [isOnline, setIsOnline] = useState(true);
 
@@ -58,7 +60,7 @@ const DeliveryDashboard = () => {
                 </div>
                 <div className="space-y-4">
                     <p className="text-sm font-bold text-slate-400 max-w-xs mx-auto">Please contact our logistics support team for more information.</p>
-                    <Button className="bg-red-600 text-white rounded-2xl">Contact Support</Button>
+                    <Button onClick={() => navigate('/partner/support')} className="bg-red-600 text-white rounded-2xl">Contact Support</Button>
                 </div>
             </div>
         );

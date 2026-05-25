@@ -28,6 +28,9 @@ import VendorOrderDetails from './pages/vendor/OrderDetails';
 // Delivery Pages
 import DeliveryDashboard from './pages/delivery/Dashboard';
 
+// Help & Support Page
+import HelpSupport from './pages/customer/HelpSupport';
+
 // Admin Pages - Removed from Customer App
 
 const getRolePath = (role) => {
@@ -113,6 +116,7 @@ function AppRoutes() {
         <Route path="cart" element={<Cart />} />
         <Route path="profile" element={<Profile />} />
         <Route path="search" element={<SearchResults />} />
+        <Route path="support" element={<HelpSupport />} />
       </Route>
 
       {/* Customer Orders Routes */}
@@ -134,6 +138,7 @@ function AppRoutes() {
         <Route index element={<VendorDashboard />} />
         <Route path="products" element={<ProductManagement />} />
         <Route path="orders/:id" element={<VendorOrderDetails />} />
+        <Route path="support" element={<HelpSupport />} />
       </Route>
 
       {/* Delivery Routes */}
@@ -143,6 +148,7 @@ function AppRoutes() {
         </ProtectedRoute>
       }>
         <Route index element={<DeliveryDashboard />} />
+        <Route path="support" element={<HelpSupport />} />
       </Route>
 
       <Route path="/profile" element={<Navigate to="/home/profile" replace />} />

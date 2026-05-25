@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
-import { User, Mail, MapPin, Phone, Shield, Bell, CreditCard, ChevronRight, Camera, Check, X } from 'lucide-react';
+import { User, Mail, MapPin, Phone, Shield, Bell, CreditCard, ChevronRight, Camera, Check, X, LifeBuoy } from 'lucide-react';
 import { Button, Card, Badge, Input } from '../../components/common';
 
 const CustomerProfile = () => {
+    const navigate = useNavigate();
     const { user } = useAuth();
     const { t } = useTranslation();
     const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +43,8 @@ const CustomerProfile = () => {
             title: t('profile.payments_orders'),
             items: [
                 { icon: CreditCard, label: t('profile.payment_methods'), desc: t('profile.payment_methods_desc'), path: "/profile/payments" },
-                { icon: Bell, label: t('profile.order_history'), desc: t('profile.order_history_desc'), path: "/ordershistory" }
+                { icon: Bell, label: t('profile.order_history'), desc: t('profile.order_history_desc'), path: "/ordershistory" },
+                { icon: LifeBuoy, label: 'Help & Support', desc: 'Get assistance and track tickets', path: "/home/support" }
             ]
         }
     ];
@@ -136,7 +139,11 @@ const CustomerProfile = () => {
                             <h2 className="text-lg font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-4">{section.title}</h2>
                             <div className="space-y-4">
                                 {section.items.map((item, iIdx) => (
-                                    <Card key={iIdx} className="hover:border-primary-800 hover:shadow-xl transition-all cursor-pointer group p-6 flex items-center justify-between gap-6 border-2 border-slate-50 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+                                    <Card 
+                                        key={iIdx} 
+                                        onClick={() => navigate(item.path)}
+                                        className="hover:border-primary-800 hover:shadow-xl transition-all cursor-pointer group p-6 flex items-center justify-between gap-6 border-2 border-slate-50 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm"
+                                    >
                                         <div className="flex items-center gap-5">
                                             <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/20 text-primary-800 dark:text-primary-400 rounded-2xl flex items-center justify-center group-hover:bg-primary-800 group-hover:text-white transition-all shadow-inner">
                                                 <item.icon size={20} />

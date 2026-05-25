@@ -210,46 +210,56 @@ const CustomerHome = () => {
                                     transition={{ duration: 0.4, delay: index * 0.1 }}
                                 >
                                     <div
-                                        className="group bg-white dark:bg-slate-900 rounded-[2.5rem] border-2 border-slate-50 dark:border-slate-800 hover:border-primary-800 dark:hover:border-primary-500 transition-all cursor-pointer overflow-hidden shadow-sm hover:shadow-2xl relative"
+                                        className="group bg-white dark:bg-slate-900 rounded-[2rem] p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all duration-500 cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
                                         onClick={() => navigate(`/home/shop/${shop._id}`)}
                                     >
-                                        <div className="relative h-56">
-                                            <img src={shop.image} alt={shop.storeName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-
-                                            <div className="absolute top-4 right-4 flex flex-col gap-2">
-                                                <div className="bg-secondary px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-black text-xs shadow-lg">
-                                                    <Star size={14} fill="currentColor" className="text-primary-800" />
+                                        {/* Image Section */}
+                                        <div className="relative h-48 w-full rounded-[1.5rem] overflow-hidden mb-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500">
+                                            <img src={shop.image} alt={shop.storeName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
+                                            
+                                            {/* Rating Badge */}
+                                            <div className="absolute top-3 right-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
+                                                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1 font-black text-xs text-slate-800 dark:text-white shadow-lg border border-white/20 dark:border-slate-700/50">
+                                                    <Star size={12} fill="currentColor" className="text-yellow-500" />
                                                     4.5
                                                 </div>
                                             </div>
 
-                                            <div className="absolute bottom-6 left-6 right-6">
-                                                <Badge className="bg-white/95 dark:bg-primary-800 text-primary-900 dark:text-white border-none font-black px-4 py-1.5 text-xs uppercase tracking-widest backdrop-blur-sm mb-3 leading-none">
+                                            {/* Category Badge inside image */}
+                                            <div className="absolute bottom-3 left-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
+                                                <Badge className="bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white border border-white/20 dark:border-slate-700/50 font-black px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur-md shadow-lg">
                                                     {shop.category}
                                                 </Badge>
-                                                <h3 className="text-2xl font-black text-white leading-tight uppercase tracking-tight group-hover:text-secondary transition-colors truncate">{shop.storeName}</h3>
-                                                <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-1 italic">{shop.town}</p>
                                             </div>
                                         </div>
 
-                                        <div className="p-6 flex items-center justify-between border-t-2 border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-9 h-9 bg-primary-100 dark:bg-primary-900/40 rounded-xl flex items-center justify-center text-primary-800 dark:text-primary-400 shadow-sm border border-primary-200/50">
-                                                    <Clock size={16} strokeWidth={3} />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Delivery</span>
-                                                    <span className="text-sm font-black text-slate-800 dark:text-white uppercase leading-none mt-1 whitespace-nowrap">25-30 MIN</span>
+                                        {/* Content Section */}
+                                        <div className="px-3 pb-3">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="space-y-1 flex-1 min-w-0">
+                                                    <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                        {shop.storeName}
+                                                    </h3>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                                                        {shop.town}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-9 h-9 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary shadow-sm border border-secondary/20">
-                                                    <Tag size={16} />
+
+                                            <div className="flex items-center gap-4 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                        <Clock size={14} strokeWidth={2.5} />
+                                                    </div>
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">25-30 Min</span>
                                                 </div>
-                                                <div className="flex flex-col text-right">
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Min Order</span>
-                                                    <span className="text-sm font-black text-slate-800 dark:text-white uppercase leading-none mt-1">₹99</span>
+                                                <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                        <Tag size={14} strokeWidth={2.5} />
+                                                    </div>
+                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">Min ₹99</span>
                                                 </div>
                                             </div>
                                         </div>

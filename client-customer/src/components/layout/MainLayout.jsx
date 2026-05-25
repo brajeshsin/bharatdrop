@@ -105,16 +105,18 @@ const MainLayout = () => {
                     { label: t('header.browse'), path: '/home', icon: Home },
                     { label: t('header.orders'), path: '/ordershistory', icon: ShoppingBag },
                     { label: t('header.profile'), path: '/home/profile', icon: User },
+                    { label: 'Support', path: '/home/support', icon: MessageSquare }
                 ];
             case ROLES.VENDOR:
                 const vendorItems = [
                     { label: 'Dashboard', path: '/merchant', icon: LayoutDashboard },
                     { label: 'Inventory', path: '/merchant/products', icon: ShoppingBag },
                     { label: 'Orders', path: '/merchant/orders', icon: Truck },
+                    { label: 'Support', path: '/merchant/support', icon: MessageSquare }
                 ];
                 // Hide sensitive links if pending
                 if (user?.status === 'PENDING') {
-                    return vendorItems.filter(item => item.label === 'Dashboard');
+                    return vendorItems.filter(item => item.label === 'Dashboard' || item.label === 'Support');
                 }
                 return vendorItems;
             case ROLES.DELIVERY:
@@ -122,6 +124,7 @@ const MainLayout = () => {
                     { label: 'Deliveries', path: '/partner', icon: Truck },
                     { label: 'Earnings', path: '/partner/history', icon: ShoppingBag },
                     { label: 'Profile', path: '/partner/profile', icon: User },
+                    { label: 'Support', path: '/partner/support', icon: MessageSquare }
                 ];
             default:
                 return [];
@@ -436,13 +439,16 @@ const MainLayout = () => {
                                         <p className="text-sm font-black uppercase tracking-tight">+91 999 888 777</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4 group cursor-pointer">
+                                <div 
+                                    onClick={() => navigate(user?.role === 'VENDOR' ? '/merchant/support' : user?.role === 'DELIVERY' ? '/partner/support' : '/home/support')}
+                                    className="flex items-center gap-4 group cursor-pointer"
+                                >
                                     <div className="w-12 h-12 bg-primary-50/10 text-primary-500 rounded-2xl flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-all shadow-inner">
                                         <Mail size={20} />
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">{t('footer.email_support')}</p>
-                                        <p className="text-sm font-black uppercase tracking-tight">care@bharatdrop.in</p>
+                                        <p className="text-sm font-black uppercase tracking-tight">Support Tickets Panel</p>
                                     </div>
                                 </div>
                             </div>
