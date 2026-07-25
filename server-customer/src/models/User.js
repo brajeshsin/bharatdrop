@@ -18,9 +18,15 @@ const userSchema = new mongoose.Schema({
     businessCategory: { type: String },
     vehicleType: { type: String },
     address: { type: String },
+    town: { type: String },
+    // Partner documents
+    drivingLicenceNo: { type: String },
+    drivingLicenceImage: { type: String },
+    aadhaarNo: { type: String },
+    aadhaarImage: { type: String },
     status: {
         type: String,
-        enum: ['PENDING', 'ACTIVE', 'SUSPENDED'],
+        enum: ['PENDING', 'ACTIVE', 'SUSPENDED', 'OFFLINE'],
         default: 'ACTIVE'
     }
 }, { timestamps: true });

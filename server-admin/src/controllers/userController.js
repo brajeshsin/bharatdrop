@@ -88,6 +88,11 @@ exports.getPendingRegistrations = async (req, res) => {
                 businessCategory: user.businessCategory,
                 vehicleType: user.vehicleType,
                 address: user.address,
+                town: user.town,
+                drivingLicenceNo: user.drivingLicenceNo,
+                drivingLicenceImage: user.drivingLicenceImage,
+                aadhaarNo: user.aadhaarNo,
+                aadhaarImage: user.aadhaarImage,
                 createdAt: user.createdAt
             }))
         });

@@ -2,10 +2,35 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const mongoose = require('mongoose');
 
+const activeLocks = new Set();
+
 // @desc    Create new orders
 // @route   POST /api/orders
 // @access  Private
 exports.createOrder = async (req, res) => {
+    const idempotencyKey = req.headers['idempotency-key'];
+
+    if (idempotencyKey) {
+        if (activeLocks.has(idempotencyKey)) {
+            return res.status(409).json({ success: false, message: 'Order is currently being processed. Please wait.' });
+        }
+
+        try {
+            const existingOrders = await Order.find({ idempotencyKey });
+            if (existingOrders.length > 0) {
+                return res.status(200).json({
+                    success: true,
+                    message: 'Orders placed successfully',
+                    orders: existingOrders
+                });
+            }
+        } catch (dbError) {
+            console.error('Error checking idempotency key:', dbError);
+        }
+
+        activeLocks.add(idempotencyKey);
+    }
+
     try {
         const { shops, paymentMethod, deliveryAddress, upiDetails } = req.body;
 
@@ -104,6 +129,7 @@ exports.createOrder = async (req, res) => {
                 paymentMethod,
                 upiDetails: paymentMethod === 'upi' ? upiDetails : undefined,
                 deliveryAddress,
+                idempotencyKey,
                 status: 'PENDING',
                 statusTimeline: [{ status: 'PENDING', timestamp: new Date() }]
             });
@@ -121,6 +147,10 @@ exports.createOrder = async (req, res) => {
     } catch (error) {
         console.error('Create Order Error:', error);
         res.status(500).json({ success: false, message: error.message });
+    } finally {
+        if (idempotencyKey) {
+            activeLocks.delete(idempotencyKey);
+        }
     }
 };
 

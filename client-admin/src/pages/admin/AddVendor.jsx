@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 
 const UNIT_PRESETS = ['KG', 'LITRE', 'HALF PLATE', 'FULL PLATE', '100GM', '250GM', '500GM', 'PIECE', 'PACKET'];
 const CATEGORIES = ['Sweets & Snacks', 'Fruits & Veg', 'Grocery', 'Restaurant', 'Pharmacy', 'Meat', 'Dhaba', 'Fast Food', 'Dairy'];
+const TOWNS = ['Rampur Village', 'Dhanikhera Town', 'Bhagwant Nagar', 'Sumerpur Hub', 'Bighapur Area', 'Unnao Central'];
 
 const AddVendor = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ const AddVendor = () => {
         storeName: '',
         category: 'Grocery',
         phone: '',
-        town: '',
+        town: 'Rampur Village',
         address: '',
         image: '',
         items: []
@@ -153,14 +154,16 @@ const AddVendor = () => {
                                         size="lg"
                                     />
                                 </div>
-                                <Input
-                                    label="TOWN / VILLAGE"
-                                    placeholder="Operational location"
-                                    className="h-14 font-black text-sm rounded-2xl border-2"
-                                    value={formData.town}
-                                    onChange={(e) => setFormData({ ...formData, town: e.target.value })}
-                                    required
-                                />
+                                <div className="space-y-2 px-1 text-left">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none block mb-1">TOWN / VILLAGE</label>
+                                    <Select
+                                        label="Town / Village"
+                                        options={TOWNS}
+                                        value={formData.town}
+                                        onChange={(val) => setFormData({ ...formData, town: val })}
+                                        size="lg"
+                                    />
+                                </div>
                                 <Input
                                     label="BRAND ASSET (IMAGE URL)"
                                     placeholder="https://..."

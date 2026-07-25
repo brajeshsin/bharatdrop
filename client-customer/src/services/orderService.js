@@ -1,9 +1,13 @@
 import api from './api';
 
 export const orderService = {
-    createOrder: async (orderData) => {
+    createOrder: async (orderData, idempotencyKey = null) => {
         try {
-            const response = await api.post('/orders', orderData);
+            const config = {};
+            if (idempotencyKey) {
+                config.headers = { 'Idempotency-Key': idempotencyKey };
+            }
+            const response = await api.post('/orders', orderData, config);
             return response.data;
         } catch (error) {
             console.error('Error creating order:', error);

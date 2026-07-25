@@ -167,13 +167,13 @@ const Orders = () => {
                                     <div className="relative group">
                                         {/* Ambient Shadow */}
                                         <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-secondary/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none" />
-                                        
+
                                         <Card className="relative p-0 border border-white/40 dark:border-slate-800/60 rounded-[2rem] overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
                                             {/* Card Header: Shop Identity */}
                                             <div className="p-6 md:p-8 flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-800/80 relative">
                                                 {/* subtle background hue */}
                                                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary-100/50 dark:bg-primary-900/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-125 duration-700" />
-                                                
+
                                                 <div className="flex items-center gap-5 z-10">
                                                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-xl relative group-hover:scale-105 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
                                                         <img src={order.shop.image} className="w-full h-full object-cover" alt="" />
@@ -184,7 +184,7 @@ const Orders = () => {
                                                         <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-1.5 mb-1">
                                                             <Calendar size={12} className="text-secondary" /> {order.date}
                                                         </p>
-                                                        <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase leading-none group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-800 group-hover:to-primary-600 transition-all">{order.shop.name}</h3>
+                                                        <h3 className="text-xs md:text-2xl lg:text-3xl font-black text-slate-800 dark:text-white tracking-tight uppercase leading-none group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary-800 group-hover:to-primary-600 transition-all">{order.shop.name}</h3>
                                                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{order.shop.location}</p>
                                                     </div>
                                                 </div>
@@ -220,7 +220,7 @@ const Orders = () => {
                                             </div>
 
                                             {/* Card Footer: Actions & Metadata */}
-                                            <div className="px-6 py-6 md:px-8 md:py-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 relative">
+                                            <div className="px-4 py-4 md:px-8 md:py-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-6 relative">
                                                 <div className="flex flex-col items-center sm:items-start relative z-10">
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-2">{t('orders.total_paid')}</p>
                                                     <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">
@@ -369,7 +369,7 @@ const Orders = () => {
                                         <img src={selectedOrder.shop.image} alt="" className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">{t('orders.purchased_from')}</p>
+                                        <p className="text-[10px] font-black text-red-500 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">{t('orders.purchased_from')}</p>
                                         <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase leading-none tracking-tight">{selectedOrder.shop.name}</h3>
                                         <p className="text-xs font-bold text-primary-800 dark:text-emerald-400 mt-1 uppercase tracking-widest">{selectedOrder.shop.location}</p>
                                     </div>
@@ -410,5 +410,4 @@ const Orders = () => {
         </div>
     );
 };
-
 export default Orders;

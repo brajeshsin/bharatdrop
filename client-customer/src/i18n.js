@@ -15,7 +15,7 @@ const resources = {
                 track_order: 'Track Order',
                 logistics_hub: 'Village Logistics Hub',
                 delivery_title: 'Direct Delivery',
-                switch_village: 'Switch Village',
+                switch_village: 'Chnage Town/Village',
                 search_placeholder: 'Search for shops, items or categories...',
                 sign_out: 'Sign Out',
                 nearby_villages: 'Nearby Villages',

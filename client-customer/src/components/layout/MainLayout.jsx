@@ -16,7 +16,7 @@ import { useCart } from '../../context/CartContext';
 import { useTheme } from '../../context/ThemeContext';
 
 const MainLayout = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, selectedTown, changeTown } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const { id: paramsId } = useParams();
@@ -43,8 +43,11 @@ const MainLayout = () => {
     const isHubPage = isHome || isOrders || isProfile || location.pathname === '/merchant' || location.pathname === '/partner' || location.pathname === '/admin';
 
     const [isScrolled, setIsScrolled] = useState(false);
-    const [selectedVillage, setSelectedVillage] = useState('Rampur Village');
-    const [tempSelectedVillage, setTempSelectedVillage] = useState('Rampur Village');
+    const [tempSelectedVillage, setTempSelectedVillage] = useState(selectedTown);
+
+    useEffect(() => {
+        setTempSelectedVillage(selectedTown);
+    }, [selectedTown]);
     const [locationSearchQuery, setLocationSearchQuery] = useState('');
     const [isVillagePickerOpen, setIsVillagePickerOpen] = useState(false);
     const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -69,6 +72,16 @@ const MainLayout = () => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+        const handleOpenPicker = () => {
+            setIsVillagePickerOpen(true);
+        };
+        window.addEventListener('open-location-picker', handleOpenPicker);
+        return () => {
+            window.removeEventListener('open-location-picker', handleOpenPicker);
+        };
     }, []);
 
     useEffect(() => {
@@ -170,16 +183,126 @@ const MainLayout = () => {
 
                         {/* Location for Customer Home */}
                         {isHome && user?.role === ROLES.CUSTOMER && (
-                            <div
-                                onClick={() => setIsVillagePickerOpen(true)}
-                                className="hidden md:flex flex-col cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 p-2 px-3 rounded-2xl transition-all group border-2 border-transparent hover:border-primary-800/20 active:scale-95 shadow-sm hover:shadow-md"
-                            >
-                                <div className="flex items-center gap-1.5 text-primary-700 dark:text-primary-400 font-black uppercase text-[10px] tracking-[0.2em] leading-none mb-1">
-                                    <MapPin size={10} fill="currentColor" /> {selectedVillage}
+                            <div className="relative">
+                                <div
+                                    onClick={() => setIsVillagePickerOpen(!isVillagePickerOpen)}
+                                    className="hidden md:flex flex-col cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/50 p-2 px-3 rounded-2xl transition-all group border-2 border-transparent hover:border-primary-800/20 active:scale-95 shadow-sm hover:shadow-md"
+                                >
+                                    <div className="flex items-center gap-1.5 text-primary-700 dark:text-primary-400 font-black uppercase text-[10px] tracking-[0.2em] leading-none mb-1">
+                                        <MapPin size={10} fill="currentColor" /> {selectedTown}
+                                    </div>
+                                    <div className="flex items-center gap-1 font-black text-slate-800 dark:text-white group-hover:text-primary-800 transition-colors text-[13px] leading-none">
+                                        {t('header.switch_village')} <ChevronDown size={14} className={`transition-transform duration-300 ${isVillagePickerOpen ? 'rotate-180' : ''}`} />
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1 font-black text-slate-800 dark:text-white group-hover:text-primary-800 transition-colors text-[13px] leading-none">
-                                    {t('header.switch_village')} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
-                                </div>
+
+                                <AnimatePresence>
+                                    {isVillagePickerOpen && (
+                                        <>
+                                            {/* Backdrop to close dropdown on click outside */}
+                                            <div
+                                                className="fixed inset-0 z-40 bg-transparent"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsVillagePickerOpen(false);
+                                                    setLocationSearchQuery('');
+                                                }}
+                                            />
+                                            {/* Dropdown Card */}
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="absolute top-full left-0 mt-3 w-[450px] bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-2 border-slate-100 dark:border-slate-800 z-50 cursor-default"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="space-y-0.5">
+                                                        <h2 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('header.nearby_villages')}</h2>
+                                                        <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('header.select_hub')}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Search Field */}
+                                                <div className="relative mb-5 group">
+                                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-800 transition-colors pointer-events-none">
+                                                        <Search size={16} />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        placeholder={t('header.search_village')}
+                                                        value={locationSearchQuery}
+                                                        onChange={(e) => setLocationSearchQuery(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl text-xs font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 transition-all shadow-inner"
+                                                    />
+                                                </div>
+
+                                                {/* Town Grid list */}
+                                                <div
+                                                    className="grid grid-cols-2 gap-3 max-h-[260px] overflow-y-auto p-1 pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary-800/40 transition-colors"
+                                                    data-lenis-prevent
+                                                >
+                                                    {filteredVillages.length > 0 ? filteredVillages.map((village) => {
+                                                        const getTownMetadata = (name) => {
+                                                            switch (name) {
+                                                                case 'Rampur Village': return { desc: 'Primary Operations', color: 'from-emerald-500/10 to-teal-500/10', text: 'text-emerald-600 dark:text-emerald-400' };
+                                                                case 'Dhanikhera Town': return { desc: 'Logistics Center', color: 'from-blue-500/10 to-indigo-500/10', text: 'text-blue-600 dark:text-blue-400' };
+                                                                case 'Bhagwant Nagar': return { desc: 'Distribution Hub', color: 'from-purple-500/10 to-pink-500/10', text: 'text-purple-600 dark:text-purple-400' };
+                                                                case 'Sumerpur Hub': return { desc: 'Retail Center', color: 'from-amber-500/10 to-orange-500/10', text: 'text-amber-600 dark:text-amber-400' };
+                                                                case 'Bighapur Area': return { desc: 'Express Zone', color: 'from-rose-500/10 to-red-500/10', text: 'text-rose-600 dark:text-rose-400' };
+                                                                default: return { desc: 'Main Headquarters', color: 'from-sky-500/10 to-cyan-500/10', text: 'text-sky-600 dark:text-sky-400' };
+                                                            }
+                                                        };
+                                                        const meta = getTownMetadata(village);
+                                                        const isSelected = selectedTown === village;
+
+                                                        return (
+                                                            <button
+                                                                key={village}
+                                                                onClick={() => {
+                                                                    changeTown(village);
+                                                                    setIsVillagePickerOpen(false);
+                                                                    setLocationSearchQuery('');
+                                                                }}
+                                                                className={`relative flex flex-col text-left p-4 rounded-[1.5rem] border-2 transition-all duration-300 group overflow-hidden ${
+                                                                    isSelected
+                                                                        ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/30 scale-[1.02]'
+                                                                        : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-lg hover:-translate-y-0.5'
+                                                                }`}
+                                                            >
+                                                                {/* Gradient Highlight Blur */}
+                                                                <div className={`absolute -right-8 -top-8 w-24 h-24 bg-gradient-to-br ${meta.color} rounded-full blur-xl opacity-80 group-hover:scale-125 transition-transform duration-500 pointer-events-none`} />
+
+                                                                <div className="flex items-start gap-2.5 relative z-10 w-full">
+                                                                    <div className={`p-2 rounded-xl transition-all duration-300 ${
+                                                                        isSelected
+                                                                            ? 'bg-white text-slate-900 shadow-sm'
+                                                                            : `bg-gradient-to-br ${meta.color} ${meta.text}`
+                                                                    }`}>
+                                                                        <MapPin size={14} strokeWidth={2.5} />
+                                                                    </div>
+                                                                    <div className="space-y-0.5 flex-1 min-w-0">
+                                                                        <h4 className={`font-black uppercase tracking-tight text-xs ${isSelected ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
+                                                                            {village}
+                                                                        </h4>
+                                                                        <p className={`text-[8px] font-bold uppercase tracking-widest leading-none ${isSelected ? 'text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                                                                            {meta.desc}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    }) : (
+                                                        <div className="p-8 text-center space-y-3 col-span-2">
+                                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('header.no_village_found', { query: locationSearchQuery })}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         )}
                     </div>
@@ -439,7 +562,7 @@ const MainLayout = () => {
                                         <p className="text-sm font-black uppercase tracking-tight">+91 999 888 777</p>
                                     </div>
                                 </div>
-                                <div 
+                                <div
                                     onClick={() => navigate(user?.role === 'VENDOR' ? '/merchant/support' : user?.role === 'DELIVERY' ? '/partner/support' : '/home/support')}
                                     className="flex items-center gap-4 group cursor-pointer"
                                 >
@@ -524,104 +647,7 @@ const MainLayout = () => {
             </AnimatePresence>
 
             {/* Village Picker Modal - Rendered at root level to ensures correct stacking context */}
-            <AnimatePresence>
-                {isVillagePickerOpen && (
-                    <motion.div
-                        key="village-picker-modal"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => {
-                            setIsVillagePickerOpen(false);
-                            setLocationSearchQuery('');
-                        }}
-                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] grid place-items-center p-6 sm:p-12 overflow-y-auto"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[3rem] p-8 md:p-10 shadow-2xl border-2 border-slate-50 dark:border-slate-800 relative"
-                        >
-                            <div className="flex items-center justify-between mb-6">
-                                <div className="space-y-1">
-                                    <h2 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('header.nearby_villages')}</h2>
-                                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('header.select_hub')}</p>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setIsVillagePickerOpen(false);
-                                        setLocationSearchQuery('');
-                                    }}
-                                    className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-                                >
-                                    <X size={20} className="text-slate-400" />
-                                </button>
-                            </div>
-
-                            {/* Search Field */}
-                            <div className="relative mb-8 group">
-                                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-800 transition-colors pointer-events-none">
-                                    <Search size={18} />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder={t('header.search_village')}
-                                    value={locationSearchQuery}
-                                    onChange={(e) => setLocationSearchQuery(e.target.value)}
-                                    className="w-full pl-14 pr-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-[2rem] text-sm font-black text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary-800 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/20 transition-all shadow-inner"
-                                />
-                            </div>
-
-                            <div
-                                className="grid grid-cols-1 gap-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700 hover:scrollbar-thumb-primary-800/30 transition-colors"
-                                data-lenis-prevent
-                            >
-                                {filteredVillages.length > 0 ? filteredVillages.map((village) => (
-                                    <button
-                                        key={village}
-                                        onClick={() => setTempSelectedVillage(village)}
-                                        className={`flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all group ${tempSelectedVillage === village
-                                            ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-800 text-primary-800 dark:text-primary-400'
-                                            : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 hover:border-primary-800/50'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-3 rounded-2xl transition-all ${tempSelectedVillage === village ? 'bg-primary-800 text-white' : 'bg-white dark:bg-slate-700 text-slate-400 group-hover:text-primary-800'
-                                                }`}>
-                                                <MapPin size={18} />
-                                            </div>
-                                            <span className="font-black uppercase tracking-tight text-sm">{village}</span>
-                                        </div>
-                                        {tempSelectedVillage === village && <div className="w-2.5 h-2.5 bg-primary-800 rounded-full shadow-[0_0_10px_rgba(30,34,55,0.5)]" />}
-                                        <ChevronRight size={16} className={`transition-all ${tempSelectedVillage === village ? 'opacity-0' : 'opacity-10 dark:opacity-30 group-hover:opacity-100 group-hover:translate-x-1'}`} />
-                                    </button>
-                                )) : (
-                                    <div className="p-10 text-center space-y-4">
-                                        <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto">
-                                            <Search size={24} className="text-slate-300" />
-                                        </div>
-                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('header.no_village_found', { query: locationSearchQuery })}</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <Button
-                                onClick={() => {
-                                    setSelectedVillage(tempSelectedVillage);
-                                    setIsVillagePickerOpen(false);
-                                    setLocationSearchQuery('');
-                                }}
-                                className="w-full mt-10 py-5 text-xs font-black tracking-[0.2em] bg-slate-900 dark:bg-white dark:text-slate-900 shadow-xl"
-                                disabled={!tempSelectedVillage}
-                            >
-                                {t('header.confirm_selection')}
-                            </Button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Removed root level modal as it is now rendered as a dropdown picker above */}
 
             {/* Logout Confirmation Modal */}
             <AnimatePresence>
@@ -642,18 +668,18 @@ const MainLayout = () => {
                             className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border-2 border-slate-50 dark:border-slate-800 relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none" />
-                            
+
                             <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-500 shadow-inner ring-4 ring-white dark:ring-slate-900 relative z-10">
                                 <LogOut size={28} />
                             </div>
-                            
+
                             <h2 className="text-2xl font-black text-slate-800 dark:text-white text-center tracking-tight mb-2 uppercase relative z-10">
                                 {t('header.sign_out')}
                             </h2>
                             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 text-center mb-8 relative z-10">
                                 Are you sure you want to log out of your account?
                             </p>
-                            
+
                             <div className="flex gap-4 relative z-10">
                                 <Button
                                     onClick={() => setIsLogoutModalOpen(false)}

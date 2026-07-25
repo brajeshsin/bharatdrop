@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Badge, Button } from '../../components/common';
 import { adminService } from '../../services/adminService';
+import { toast } from 'react-hot-toast';
 import {
     Bike, Phone, TrendingUp, ShieldCheck, ShieldAlert,
     X, MapPin, Star, Calendar, Trash2, ArrowLeft,
@@ -34,8 +35,41 @@ const PartnerDetails = () => {
         fetchPartner();
     }, [id, setIsLoading]);
 
-    const toggleStatus = () => {
-        setPartner(prev => ({ ...prev, status: prev.status === 'Online' ? 'Offline' : 'Online' }));
+    const toggleStatus = async () => {
+        const newStatus = partner.status === 'Online' ? 'Offline' : 'Online';
+        setIsLoading(true);
+        try {
+            const response = await adminService.updatePartnerStatus(partner.id, newStatus);
+            if (response.success) {
+                setPartner(prev => ({ ...prev, status: newStatus }));
+                toast.success('Partner status updated successfully');
+            } else {
+                toast.error(response.message || 'Failed to update status');
+            }
+        } catch (error) {
+            toast.error('Failed to update status due to connection error.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleTerminate = async () => {
+        if (window.confirm(`Are you sure you want to terminate partner ${partner.name}?`)) {
+            setIsLoading(true);
+            try {
+                const response = await adminService.deletePartner(partner.id);
+                if (response.success) {
+                    toast.success('Partner profile terminated successfully');
+                    navigate('/admin/partners');
+                } else {
+                    toast.error(response.message || 'Failed to terminate partner');
+                }
+            } catch (error) {
+                toast.error('Failed to terminate partner due to connection error.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
     };
 
     if (loading) return null; // Global loader handles this
@@ -47,11 +81,17 @@ const PartnerDetails = () => {
         </div>
     );
 
+    const partnerIdNumeric = typeof partner.id === 'number'
+        ? partner.id
+        : (parseInt(partner.id.slice(-6), 16) || 1);
+
     const stats = [
-        { label: 'Total Shipments', value: (100 + (partner.id * 7)).toString(), progress: 60 + (partner.id % 40), color: 'bg-primary-800', icon: <Package size={16} /> },
-        { label: 'Customer Rating', value: (4.0 + (partner.id % 10) / 10).toFixed(1) + '/5', progress: 80 + (partner.id % 20), color: 'bg-amber-500', icon: <Star size={16} /> },
-        { label: 'Response Time', value: (10 + (partner.id % 20)) + ' min', progress: 50 + (partner.id % 50), color: 'bg-blue-600', icon: <Clock size={16} /> },
+        { label: 'Total Shipments', value: (100 + (partnerIdNumeric % 150)).toString(), progress: 60 + (partnerIdNumeric % 40), color: 'bg-primary-800', icon: <Package size={16} /> },
+        { label: 'Customer Rating', value: (4.0 + (partnerIdNumeric % 10) / 10).toFixed(1) + '/5', progress: 80 + (partnerIdNumeric % 20), color: 'bg-amber-500', icon: <Star size={16} /> },
+        { label: 'Response Time', value: (10 + (partnerIdNumeric % 20)) + ' min', progress: 50 + (partnerIdNumeric % 50), color: 'bg-blue-600', icon: <Clock size={16} /> },
     ];
+
+    const shortId = typeof partner.id === 'string' ? partner.id.slice(-4).toUpperCase() : partner.id;
 
     return (
         <div className="space-y-8 animate-fade-in pb-12">
@@ -84,8 +124,8 @@ const PartnerDetails = () => {
 
                             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic mb-2">{partner.name}</h2>
                             <div className="flex items-center gap-2 mb-6">
-                                <Badge variant={partner.status === 'Online' ? 'success' : 'default'} className="px-6 py-2 font-black uppercase text-xs tracking-widest">{partner.status}</Badge>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">P-{partner.id}00</span>
+                                <Badge variant={partner.status === 'Online' ? 'success' : 'error'} className="px-6 py-2 font-black uppercase text-xs tracking-widest">{partner.status}</Badge>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">P-{shortId}</span>
                             </div>
 
                             <div className="w-full grid grid-cols-1 gap-3">
@@ -99,7 +139,7 @@ const PartnerDetails = () => {
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Calendar size={18} className="text-primary-800 dark:text-primary-400" />
-                                        <span className="font-bold text-sm dark:text-slate-300 italic uppercase">Since {['JAN', 'FEB', 'MAR', 'OCT', 'NOV'][partner.id % 5]} 2025</span>
+                                        <span className="font-bold text-sm dark:text-slate-300 italic uppercase">Since {['JAN', 'FEB', 'MAR', 'OCT', 'NOV'][partnerIdNumeric % 5]} 2025</span>
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +165,7 @@ const PartnerDetails = () => {
                             <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-widest uppercase italic">Performance Pulse</h3>
                             <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/10 px-4 py-2 rounded-xl">
                                 <TrendingUp size={16} className="text-emerald-600" />
-                                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">{90 + (partner.id % 10)}% Rate</span>
+                                <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">{90 + (partnerIdNumeric % 10)}% Rate</span>
                             </div>
                         </div>
 
@@ -166,7 +206,7 @@ const PartnerDetails = () => {
                             {partner.status === 'Online' ? <ShieldAlert size={20} className="mr-3" /> : <ShieldCheck size={20} className="mr-3" />}
                             {partner.status === 'Online' ? 'Deactivate Access' : 'Reactivate Access'}
                         </Button>
-                        <Button variant="outline" className="py-6 rounded-[2rem] font-black text-xs tracking-[0.2em] uppercase bg-slate-50 dark:bg-slate-800 border-none hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 transition-all hover:scale-105">
+                        <Button onClick={handleTerminate} variant="outline" className="py-6 rounded-[2rem] font-black text-xs tracking-[0.2em] uppercase bg-slate-50 dark:bg-slate-800 border-none hover:bg-red-50 dark:hover:bg-red-900/10 hover:text-red-600 transition-all hover:scale-105">
                             <Trash2 size={20} className="mr-3" /> Terminate Profile
                         </Button>
                     </div>

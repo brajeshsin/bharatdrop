@@ -13,9 +13,11 @@ import logisticsHero from '../../assets/logistics_hero.png';
 import { getAds } from '../../services/promoService';
 import PromoBanner from '../../components/common/PromoBanner';
 import { vendorService } from '../../services/vendorService';
+import { useAuth } from '../../context/AuthContext';
 
 const CategoryItem = ({ cat, i, selectedCategory, setSelectedCategory }) => {
     const [imageError, setImageError] = useState(false);
+    const isAll = cat.name === 'All';
     return (
         <motion.button
             key={cat.name}
@@ -26,7 +28,11 @@ const CategoryItem = ({ cat, i, selectedCategory, setSelectedCategory }) => {
             className="group flex flex-col items-center gap-3"
         >
             <div className={`w-16 h-16 xs:w-20 xs:h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-4 transition-all duration-300 ${selectedCategory === cat.name ? 'border-primary-800 scale-110 shadow-xl' : 'border-white dark:border-slate-800 shadow-sm hover:border-primary-200'}`}>
-                {imageError ? (
+                {isAll ? (
+                    <div className={cn("w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400")}>
+                        <LayoutGrid size={28} strokeWidth={2} />
+                    </div>
+                ) : imageError ? (
                     <div className={cn("w-full h-full flex items-center justify-center text-3xl font-black uppercase", cat.color || "bg-slate-100 text-slate-400")}>
                         {cat.name[0]}
                     </div>
@@ -84,6 +90,7 @@ const CustomerHome = () => {
     const [loadingVendors, setLoadingVendors] = useState(true);
     const { t } = useTranslation();
     const navigate = useNavigate();
+    const { selectedTown } = useAuth();
 
     useEffect(() => {
         const fetchAds = async () => {
@@ -93,7 +100,10 @@ const CustomerHome = () => {
         const fetchCategories = async () => {
             const data = await vendorService.getCategories();
             if (data && data.length > 0) {
-                setCategories(data);
+                setCategories([
+                    { name: 'All' },
+                    ...data
+                ]);
             }
         };
         fetchAds();
@@ -103,12 +113,15 @@ const CustomerHome = () => {
     useEffect(() => {
         const fetchVendors = async () => {
             setLoadingVendors(true);
-            const data = await vendorService.getVendors({ category: selectedCategory });
+            const data = await vendorService.getVendors({ 
+                category: selectedCategory,
+                town: selectedTown
+            });
             setVendors(data);
             setLoadingVendors(false);
         };
         fetchVendors();
-    }, [selectedCategory]);
+    }, [selectedCategory, selectedTown]);
 
     const filteredShops = vendors.filter(shop => {
         const matchesSearch = shop.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,78 +209,115 @@ const CustomerHome = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        <AnimatePresence mode="popLayout">
-                            {loadingVendors ? (
-                                [1, 2, 4, 5].map(i => <div key={i} className="h-80 bg-slate-100 dark:bg-slate-800 rounded-[2.5rem] animate-pulse" />)
-                            ) : filteredShops.map((shop, index) => (
-                                <motion.div
-                                    key={shop._id}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                                >
-                                    <div
-                                        className="group bg-white dark:bg-slate-900 rounded-[2rem] p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all duration-500 cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
-                                        onClick={() => navigate(`/home/shop/${shop._id}`)}
+                    {loadingVendors ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {[1, 2, 3, 4].map(i => <div key={i} className="h-80 bg-slate-100 dark:bg-slate-800 rounded-[2.5rem] animate-pulse" />)}
+                        </div>
+                    ) : filteredShops.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            <AnimatePresence mode="popLayout">
+                                {filteredShops.map((shop, index) => (
+                                    <motion.div
+                                        key={shop._id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ duration: 0.4, delay: index * 0.1 }}
                                     >
-                                        {/* Image Section */}
-                                        <div className="relative h-48 w-full rounded-[1.5rem] overflow-hidden mb-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500">
-                                            <img src={shop.image} alt={shop.storeName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
-                                            
-                                            {/* Rating Badge */}
-                                            <div className="absolute top-3 right-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
-                                                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1 font-black text-xs text-slate-800 dark:text-white shadow-lg border border-white/20 dark:border-slate-700/50">
-                                                    <Star size={12} fill="currentColor" className="text-yellow-500" />
-                                                    4.5
+                                        <div
+                                            className="group bg-white dark:bg-slate-900 rounded-[2rem] p-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-all duration-500 cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shadow-sm hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
+                                            onClick={() => navigate(`/home/shop/${shop._id}`)}
+                                        >
+                                            {/* Image Section */}
+                                            <div className="relative h-48 w-full rounded-[1.5rem] overflow-hidden mb-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500">
+                                                <img src={shop.image} alt={shop.storeName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/10 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
+
+                                                {/* Rating Badge */}
+                                                <div className="absolute top-3 right-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
+                                                    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex items-center gap-1 font-black text-xs text-slate-800 dark:text-white shadow-lg border border-white/20 dark:border-slate-700/50">
+                                                        <Star size={12} fill="currentColor" className="text-yellow-500" />
+                                                        4.5
+                                                    </div>
+                                                </div>
+
+                                                {/* Category Badge inside image */}
+                                                <div className="absolute bottom-3 left-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
+                                                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white border border-white/20 dark:border-slate-700/50 font-black px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur-md shadow-lg">
+                                                        {shop.category}
+                                                    </Badge>
                                                 </div>
                                             </div>
 
-                                            {/* Category Badge inside image */}
-                                            <div className="absolute bottom-3 left-3 transform translate-y-0 group-hover:-translate-y-1 transition-transform duration-500">
-                                                <Badge className="bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-white border border-white/20 dark:border-slate-700/50 font-black px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur-md shadow-lg">
-                                                    {shop.category}
-                                                </Badge>
+                                            {/* Content Section */}
+                                            <div className="px-3 pb-3">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div className="space-y-1 flex-1 min-w-0">
+                                                        <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                            {shop.storeName}
+                                                        </h3>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+                                                            {shop.town}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-4 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/60">
+                                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                                                        <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                                            <Clock size={14} strokeWidth={2.5} />
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-[0.1em]">25-30 Min</span>
+                                                    </div>
+                                                    <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
+                                                        <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                            <Tag size={14} strokeWidth={2.5} />
+                                                        </div>
+                                                        <span className="text-[10px] font-black uppercase tracking-[0.1em]">Min ₹99</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        </div>
+                    ) : (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="w-full max-w-lg mx-auto py-16 px-8 text-center bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-[3rem] shadow-xl relative overflow-hidden"
+                        >
+                            {/* Decorative gradients */}
+                            <div className="absolute top-0 left-0 w-32 h-32 bg-primary-100/40 dark:bg-primary-900/10 rounded-full blur-2xl -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+                            <div className="absolute bottom-0 right-0 w-32 h-32 bg-amber-100/40 dark:bg-amber-900/10 rounded-full blur-2xl translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-                                        {/* Content Section */}
-                                        <div className="px-3 pb-3">
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="space-y-1 flex-1 min-w-0">
-                                                    <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                                                        {shop.storeName}
-                                                    </h3>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
-                                                        {shop.town}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-4 mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/60">
-                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-primary-50 dark:group-hover:bg-primary-900/30 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                                                        <Clock size={14} strokeWidth={2.5} />
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">25-30 Min</span>
-                                                </div>
-                                                <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                                                <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
-                                                    <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                                        <Tag size={14} strokeWidth={2.5} />
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase tracking-[0.1em]">Min ₹99</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-24 h-24 bg-gradient-to-br from-primary-50 to-primary-100/30 dark:from-slate-800 dark:to-slate-700 rounded-[2.2rem] flex items-center justify-center mx-auto text-primary-800 dark:text-primary-400 shadow-inner">
+                                    <ShoppingBag size={40} strokeWidth={1.5} className="animate-bounce" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">No Shops in {selectedTown}</h3>
+                                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 max-w-sm mx-auto leading-relaxed">
+                                        We are actively onboarding local merchants in this village. Try changing your town to find active stores delivering in nearby regions!
+                                    </p>
+                                </div>
+                                <div className="pt-2">
+                                    <Button
+                                        onClick={() => {
+                                            const event = new CustomEvent('open-location-picker');
+                                            window.dispatchEvent(event);
+                                        }}
+                                        className="py-4 px-8 text-[10px] font-black uppercase tracking-widest bg-slate-900 dark:bg-white dark:text-slate-900 shadow-xl active:scale-95 transition-all"
+                                    >
+                                        Change Town/Village
+                                    </Button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
                 </section>
 
                 <section className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 md:p-16 border-2 border-slate-100 dark:border-slate-800 shadow-xl relative overflow-hidden">

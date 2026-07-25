@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // @access  Public
 exports.getVendors = async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category, town } = req.query;
 
         const adminDb = mongoose.connection.useDb('bharatdrop_admin');
         // We can reuse the schema from the existing model file
@@ -15,6 +15,23 @@ exports.getVendors = async (req, res) => {
 
         if (category && category !== 'All') {
             query.category = category;
+        }
+
+        if (town) {
+            const normalized = town.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (normalized.includes('rampur')) {
+                query.$or = [{ town: 'Rampur Village' }, { town: 'Rampur' }, { town: /^rampur/i }];
+            } else if (normalized.includes('dhanikhera') || normalized.includes('dhani') || normalized.includes('dhanki')) {
+                query.$or = [
+                    { town: 'Dhanikhera Town' },
+                    { town: /^dh[a-z]*ni?\s*khera/i }
+                ];
+            } else if (normalized.includes('bhagwant')) {
+                query.$or = [{ town: 'Bhagwant Nagar' }, { town: 'Bgahwant' }, { town: /^bhagwant/i }];
+            } else {
+                const cleanedTown = town.replace(/\s+(Village|Town|Hub|Area|Central)$/i, '').trim();
+                query.town = { $regex: new RegExp(`^${cleanedTown}`, 'i') };
+            }
         }
 
         const vendors = await Vendor.find(query).sort({ createdAt: -1 });

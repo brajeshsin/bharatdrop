@@ -3,8 +3,15 @@ import api from './api';
 export const vendorService = {
     getVendors: async (params = {}) => {
         try {
-            const { category = 'All' } = params;
-            const query = category !== 'All' ? `?category=${category}` : '';
+            const { category = 'All', town } = params;
+            const queryParams = [];
+            if (category !== 'All') {
+                queryParams.push(`category=${encodeURIComponent(category)}`);
+            }
+            if (town) {
+                queryParams.push(`town=${encodeURIComponent(town)}`);
+            }
+            const query = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
             const response = await api.get(`/vendors${query}`);
             return response.data.success ? response.data.vendors : [];
         } catch (error) {

@@ -1,14 +1,16 @@
 const User = require('../models/User');
 const sendEmail = require('../utils/emailService');
 const jwt = require('jsonwebtoken');
+const { uploadImage } = require('../utils/cloudinary');
 
 exports.requestOtp = async (req, res) => {
     try {
-        let { email, mobile, name, role, storeName, businessCategory, vehicleType, address } = req.body;
+        let { email, mobile, name, role, storeName, businessCategory, vehicleType, address, town } = req.body;
         if (email) email = email.trim();
         if (mobile) mobile = mobile.trim();
         if (name) name = name.trim();
         if (role) role = role.toUpperCase();
+        if (town) town = town.trim();
 
         const otp = "209863"; // Fixed Dummy OTP
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
@@ -54,6 +56,7 @@ exports.requestOtp = async (req, res) => {
                 businessCategory,
                 vehicleType,
                 address,
+                town,
                 status,
                 createdAt: new Date(),
                 updatedAt: new Date()
@@ -85,6 +88,7 @@ exports.requestOtp = async (req, res) => {
                     if (businessCategory) updateData.businessCategory = businessCategory;
                     if (vehicleType) updateData.vehicleType = vehicleType;
                     if (address) updateData.address = address;
+                    if (town) updateData.town = town;
                     updateData.status = 'PENDING';
                 }
 
@@ -101,7 +105,7 @@ exports.requestOtp = async (req, res) => {
                     email, mobile, name, otp, otpExpires,
                     role: role || 'CUSTOMER',
                     status: (role === 'VENDOR' || role === 'DELIVERY') ? 'PENDING' : 'ACTIVE',
-                    storeName, businessCategory, vehicleType, address,
+                    storeName, businessCategory, vehicleType, address, town,
                     createdAt: new Date(), updatedAt: new Date()
                 });
             } else {
@@ -188,6 +192,78 @@ exports.getMe = async (req, res) => {
             user
         });
     } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.updateStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        if (!status || !['ACTIVE', 'SUSPENDED', 'PENDING', 'OFFLINE'].includes(status.toUpperCase())) {
+            return res.status(400).json({ success: false, message: 'Invalid status value' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        user.status = status.toUpperCase();
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Status updated successfully',
+            status: user.status
+        });
+    } catch (error) {
+        console.error('Error updating status:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+exports.updateDocuments = async (req, res) => {
+    try {
+        const { drivingLicenceNo, drivingLicenceImage, aadhaarNo, aadhaarImage } = req.body;
+        if (!drivingLicenceNo || !aadhaarNo) {
+            return res.status(400).json({ success: false, message: 'Driving licence number and Aadhaar number are required' });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Upload to Cloudinary (will fall back gracefully if API credential details are incomplete)
+        const uploadedDlImage = await uploadImage(drivingLicenceImage);
+        const uploadedAadhaarImage = await uploadImage(aadhaarImage);
+
+        user.drivingLicenceNo = drivingLicenceNo;
+        user.drivingLicenceImage = uploadedDlImage || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?q=80&w=300&auto=format&fit=crop';
+        user.aadhaarNo = aadhaarNo;
+        user.aadhaarImage = uploadedAadhaarImage || 'https://images.unsplash.com/photo-1554774853-aae0a22c8aa4?q=80&w=300&auto=format&fit=crop';
+        user.status = 'PENDING';
+
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Documents updated successfully',
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                mobile: user.mobile,
+                role: user.role,
+                status: user.status,
+                drivingLicenceNo: user.drivingLicenceNo,
+                drivingLicenceImage: user.drivingLicenceImage,
+                aadhaarNo: user.aadhaarNo,
+                aadhaarImage: user.aadhaarImage
+            }
+        });
+    } catch (error) {
+        console.error('Error updating documents:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

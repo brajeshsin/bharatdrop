@@ -5,12 +5,14 @@ import { Card, Button, Badge } from '../../components/common';
 import { Search, Store, Package, ChevronRight, ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { vendorService } from '../../services/vendorService';
+import { useAuth } from '../../context/AuthContext';
 
 const SearchResults = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { t } = useTranslation();
     const query = searchParams.get('q') || '';
+    const { selectedTown } = useAuth();
 
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -18,12 +20,12 @@ const SearchResults = () => {
     useEffect(() => {
         const fetchAllVendors = async () => {
             setLoading(true);
-            const data = await vendorService.getVendors();
+            const data = await vendorService.getVendors({ town: selectedTown });
             setVendors(data);
             setLoading(false);
         };
         fetchAllVendors();
-    }, []);
+    }, [selectedTown]);
 
     const results = useMemo(() => {
         if (!query.trim() || vendors.length === 0) return { shops: [], products: [] };

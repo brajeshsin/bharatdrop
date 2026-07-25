@@ -34,6 +34,8 @@ const CartPage = () => {
     const [isLoadingMethods, setIsLoadingMethods] = useState(true);
     const [animationData, setAnimationData] = useState(null);
     const fileInputRef = useRef(null);
+    const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+    const idempotencyKeyRef = useRef(`idemp-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`);
 
     useEffect(() => {
         const fetchMethods = async () => {
@@ -158,7 +160,7 @@ const CartPage = () => {
             return;
         }
 
-        setIsUploading(true); // Reuse as loading state
+        setIsPlacingOrder(true);
         try {
             const orderData = {
                 shops: shopsInCart,
@@ -175,7 +177,7 @@ const CartPage = () => {
                 } : undefined
             };
 
-            const response = await orderService.createOrder(orderData);
+            const response = await orderService.createOrder(orderData, idempotencyKeyRef.current);
 
             if (response.success) {
                 toast.success('Orders placed successfully!');
@@ -194,6 +196,9 @@ const CartPage = () => {
                 });
             } else {
                 const msg = response.message || 'Failed to place order';
+                
+                // Regenerate key since order placement was explicitly rejected
+                idempotencyKeyRef.current = `idemp-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
 
                 // If it's a price or stock conflict, show the specialized modal
                 if (msg.toLowerCase().includes('refresh your cart') || msg.toLowerCase().includes('out of stock')) {
@@ -204,14 +209,17 @@ const CartPage = () => {
                 }
             }
         } catch (error) {
-            toast.error('Connection error. Please try again.');
+            if (error.response && error.response.status !== 409) {
+                idempotencyKeyRef.current = `idemp-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
+            }
+            toast.error(error.response?.data?.message || 'Connection error. Please try again.');
         } finally {
-            setIsUploading(false);
+            setIsPlacingOrder(false);
         }
     };
 
     const hasOutOfStockItems = shopsInCart.some(shop => shop.items.some(item => item.isOutOfStock));
-    const isOrderEnabled = !hasOutOfStockItems && (paymentMethod === 'cod' || (paymentMethod === 'upi' && refNumber.length === 12 && isScreenshotUploaded));
+    const isOrderEnabled = !isPlacingOrder && !isUploading && !hasOutOfStockItems && (paymentMethod === 'cod' || (paymentMethod === 'upi' && refNumber.length === 12 && isScreenshotUploaded));
 
     return (
         <div className="w-full space-y-12 pb-32 animate-fade-in">
@@ -583,15 +591,24 @@ const CartPage = () => {
                                     : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-60 grayscale"
                             )}
                         >
-                            <span className="relative z-10">Confirm & Place Order</span>
-                            <div className={cn(
-                                "w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-500 relative z-10",
-                                isOrderEnabled ? "bg-white/10 group-hover:bg-secondary group-hover:text-primary-900 group-hover:rotate-[360deg]" : "bg-slate-200 dark:bg-slate-700"
-                            )}>
-                                <ArrowRight size={20} strokeWidth={4} />
-                            </div>
-                            {isOrderEnabled && (
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary-700 to-primary-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            {isPlacingOrder ? (
+                                <div className="flex items-center gap-3 relative z-10">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                                    <span>Placing Order...</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <span className="relative z-10">Confirm & Place Order</span>
+                                    <div className={cn(
+                                        "w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-500 relative z-10",
+                                        isOrderEnabled ? "bg-white/10 group-hover:bg-secondary group-hover:text-primary-900 group-hover:rotate-[360deg]" : "bg-slate-200 dark:bg-slate-700"
+                                    )}>
+                                        <ArrowRight size={20} strokeWidth={4} />
+                                    </div>
+                                    {isOrderEnabled && (
+                                        <div className="absolute inset-0 bg-gradient-to-r from-primary-700 to-primary-900 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    )}
+                                </>
                             )}
                         </Button>
                         <div className="flex flex-col items-center gap-2">

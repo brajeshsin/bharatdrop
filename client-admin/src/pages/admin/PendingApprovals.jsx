@@ -13,6 +13,7 @@ const PendingApprovals = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [actionType, setActionType] = useState(null); // 'approve' or 'reject'
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     const fetchPendingRequests = async () => {
         setLoading(true);
@@ -138,8 +139,52 @@ const PendingApprovals = () => {
                                                     {request.role === 'VENDOR' ? request.storeName : `${request.vehicleType} Fleet`}
                                                 </p>
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                                                    {request.role === 'VENDOR' ? request.businessCategory : 'Delivery Management'}
+                                                    {request.role === 'VENDOR' ? request.businessCategory : `Hub: ${request.town || 'Default Hub'}`}
                                                 </p>
+
+                                                {request.role === 'DELIVERY' && (
+                                                    <div className="mt-3 space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Verification Docs:</div>
+                                                        <div className="space-y-1">
+                                                            <div className="text-[10px] font-black text-slate-750 dark:text-slate-300 uppercase leading-none">
+                                                                DL: <span className="font-extrabold text-primary-600 dark:text-primary-400">{request.drivingLicenceNo || 'N/A'}</span>
+                                                            </div>
+                                                            <div className="text-[10px] font-black text-slate-750 dark:text-slate-300 uppercase leading-none">
+                                                                Aadhaar: <span className="font-extrabold text-primary-600 dark:text-primary-400">{request.aadhaarNo || 'N/A'}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2 pt-1">
+                                                            {request.drivingLicenceImage && (
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setLightboxImage(request.drivingLicenceImage)}
+                                                                    className="relative group shrink-0 block"
+                                                                >
+                                                                    <img 
+                                                                        src={request.drivingLicenceImage} 
+                                                                        alt="DL" 
+                                                                        className="w-10 h-10 object-cover rounded-lg border border-slate-205 dark:border-slate-750 hover:scale-105 transition-transform" 
+                                                                    />
+                                                                    <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[7px] text-white font-bold rounded-lg transition-opacity uppercase">DL</span>
+                                                                </button>
+                                                            )}
+                                                            {request.aadhaarImage && (
+                                                                <button 
+                                                                    type="button"
+                                                                    onClick={() => setLightboxImage(request.aadhaarImage)}
+                                                                    className="relative group shrink-0 block"
+                                                                >
+                                                                    <img 
+                                                                        src={request.aadhaarImage} 
+                                                                        alt="Aadhaar" 
+                                                                        className="w-10 h-10 object-cover rounded-lg border border-slate-205 dark:border-slate-750 hover:scale-105 transition-transform" 
+                                                                    />
+                                                                    <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[7px] text-white font-bold rounded-lg transition-opacity uppercase">Aadhaar</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-8 py-7">
@@ -189,6 +234,38 @@ const PendingApprovals = () => {
                 confirmText={actionType === 'approve' ? 'APPROVE PARTNER' : 'REJECT APPLICANT'}
                 variant={actionType === 'approve' ? 'primary' : 'danger'}
             />
+
+            <AnimatePresence>
+                {lightboxImage && (
+                    <div 
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 cursor-zoom-out"
+                        onClick={() => setLightboxImage(null)}
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center justify-center"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img 
+                                src={lightboxImage} 
+                                alt="Document Preview" 
+                                className="max-w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl"
+                            />
+                            <div className="mt-6 flex justify-between items-center w-full px-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Compliance Verification View</span>
+                                <Button 
+                                    onClick={() => setLightboxImage(null)}
+                                    className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
+                                >
+                                    Close Preview
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

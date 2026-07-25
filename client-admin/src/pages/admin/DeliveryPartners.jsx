@@ -22,6 +22,19 @@ const PAGE_SIZE_OPTIONS = [
     { label: '50 Per Page', value: 50 }
 ];
 
+const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+};
+
 const DeliveryPartners = () => {
     const navigate = useNavigate();
     const { setIsLoading } = useLoading();
@@ -50,6 +63,25 @@ const DeliveryPartners = () => {
         };
         fetchPartners();
     }, [setIsLoading]);
+
+    const handleDelete = async (partner) => {
+        if (window.confirm(`Are you sure you want to terminate partner ${partner.name}?`)) {
+            setIsLoading(true);
+            try {
+                const response = await adminService.deletePartner(partner.id);
+                if (response.success) {
+                    toast.success('Partner terminated successfully');
+                    setPartners(prev => prev.filter(p => p.id !== partner.id));
+                } else {
+                    toast.error(response.message || 'Failed to delete partner');
+                }
+            } catch (error) {
+                toast.error('Failed to delete partner due to connection error.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
 
     // Filtering logic
     const filteredPartners = partners.filter(p => {
@@ -132,6 +164,7 @@ const DeliveryPartners = () => {
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">S.No</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Partner</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center">Contact</th>
+                                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center">Joined</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-right">Earnings</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center">Status</th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-right">Actions</th>
@@ -153,12 +186,15 @@ const DeliveryPartners = () => {
                                             </div>
                                             <div>
                                                 <p className="font-black text-slate-900 dark:text-white tracking-widest uppercase text-sm group-hover:text-primary-800 dark:group-hover:text-primary-400 transition-colors">{partner.name}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">V-{partner.id}00 • {partner.zone}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">V-{typeof partner.id === 'string' ? partner.id.slice(-4).toUpperCase() : partner.id} • {partner.zone}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-center">
                                         <span className="font-bold text-xs text-slate-600 dark:text-slate-400 tracking-widest uppercase italic">{partner.phone}</span>
+                                    </td>
+                                    <td className="px-8 py-6 text-center">
+                                        <span className="font-bold text-xs text-slate-600 dark:text-slate-400 tracking-wider whitespace-nowrap">{formatDate(partner.createdAt)}</span>
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex flex-col items-end">
@@ -168,7 +204,7 @@ const DeliveryPartners = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex justify-center">
-                                            <Badge variant={partner.status === 'Online' ? 'success' : 'default'} className="px-4 py-1.5 font-black uppercase text-[9px] tracking-widest">
+                                            <Badge variant={partner.status === 'Online' ? 'success' : 'error'} className="px-4 py-1.5 font-black uppercase text-[9px] tracking-widest">
                                                 {partner.status}
                                             </Badge>
                                         </div>
@@ -184,7 +220,7 @@ const DeliveryPartners = () => {
                                             </button>
                                             <button
                                                 className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-900/50 transition-all shadow-sm"
-                                                onClick={() => toast.error(`Termination restricted: Cannot delete ${partner.name}`)}
+                                                onClick={() => handleDelete(partner)}
                                             >
                                                 <Trash2 size={18} />
                                             </button>

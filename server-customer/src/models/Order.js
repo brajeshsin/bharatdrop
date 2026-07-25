@@ -51,6 +51,10 @@ const orderSchema = new mongoose.Schema({
         landmark: { type: String },
         pincode: { type: String }
     },
+    idempotencyKey: {
+        type: String,
+        index: true
+    },
     statusTimeline: [{
         status: { type: String, required: true },
         timestamp: { type: Date, default: Date.now }

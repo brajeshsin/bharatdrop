@@ -20,6 +20,15 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const [selectedTown, setSelectedTown] = useState(() => {
+        return localStorage.getItem('vdp_selected_town') || 'Rampur Village';
+    });
+
+    const changeTown = (town) => {
+        setSelectedTown(town);
+        localStorage.setItem('vdp_selected_town', town);
+    };
+
     useEffect(() => {
         const initAuth = async () => {
             const savedUser = localStorage.getItem('vdp_user');
@@ -129,8 +138,40 @@ export const AuthProvider = ({ children }) => {
         navigate('/login');
     };
 
+    const updateUserStatus = async (status) => {
+        try {
+            const response = await api.patch('/auth/status', { status });
+            if (response.data.success) {
+                const updatedUser = { ...user, status: response.data.status };
+                setUser(updatedUser);
+                localStorage.setItem('vdp_user', JSON.stringify(updatedUser));
+                return { success: true, status: response.data.status };
+            }
+            return { success: false, message: response.data.message };
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            return { success: false, message: error.response?.data?.message || 'Server connection failed' };
+        }
+    };
+
+    const updateUserDocuments = async (docData) => {
+        try {
+            const response = await api.patch('/auth/documents', docData);
+            if (response.data.success) {
+                const updatedUser = response.data.user;
+                setUser(updatedUser);
+                localStorage.setItem('vdp_user', JSON.stringify(updatedUser));
+                return { success: true, user: updatedUser };
+            }
+            return { success: false, message: response.data.message };
+        } catch (error) {
+            console.error("Failed to update documents:", error);
+            return { success: false, message: error.response?.data?.message || 'Server connection failed' };
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, requestOtp, verifyOtp, loading, ROLES }}>
+        <AuthContext.Provider value={{ user, login, logout, requestOtp, verifyOtp, loading, ROLES, selectedTown, changeTown, updateUserStatus, updateUserDocuments }}>
             {children}
         </AuthContext.Provider>
     );

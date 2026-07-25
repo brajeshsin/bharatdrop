@@ -22,7 +22,8 @@ const Login = () => {
         storeName: "",
         businessCategory: "",
         vehicleType: "Bike",
-        address: ""
+        address: "",
+        town: ""
     });
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,6 +51,14 @@ const Login = () => {
                 setError("Please enter a valid email address (e.g. name@example.com)");
                 return;
             }
+            if (role === 'VENDOR' && (!formData.storeName || !formData.businessCategory || !formData.address || !formData.town)) {
+                setError("All shop details including town are required");
+                return;
+            }
+            if (role === 'DELIVERY' && (!formData.vehicleType || !formData.town)) {
+                setError("All details including vehicle type and town are required");
+                return;
+            }
         }
 
         setIsSubmitting(true);
@@ -59,8 +68,10 @@ const Login = () => {
             metadata.storeName = formData.storeName;
             metadata.businessCategory = formData.businessCategory;
             metadata.address = formData.address;
+            metadata.town = formData.town;
         } else if (role === 'DELIVERY') {
             metadata.vehicleType = formData.vehicleType;
+            metadata.town = formData.town;
         }
 
         const result = await requestOtp(
@@ -236,11 +247,31 @@ const Login = () => {
                                                         onChange={(e) => setFormData({ ...formData, businessCategory: e.target.value })}
                                                     >
                                                         <option value="">Select Category</option>
-                                                        <option value="GROCERY">Grocery/Kirana</option>
-                                                        <option value="MEDICINE">Medical/Pharmacy</option>
-                                                        <option value="ELECTRONICS">Electronics/Hardware</option>
-                                                        <option value="CLOTHING">Clothing/Apparel</option>
-                                                        <option value="OTHER">Other Business</option>
+                                                        <option value="Grocery">Grocery/Kirana</option>
+                                                        <option value="Restaurant">Restaurant/Hotel</option>
+                                                        <option value="Dhaba">Dhaba/Food Stall</option>
+                                                        <option value="Fast Food">Fast Food/Cafe</option>
+                                                        <option value="Sweets & Snacks">Sweets & Snacks</option>
+                                                        <option value="Dairy">Dairy/Milk Parlour</option>
+                                                        <option value="Fruits & Veg">Fruits & Vegetables</option>
+                                                        <option value="Medicine">Medical/Pharmacy</option>
+                                                        <option value="Meat">Meat/Fish Shop</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Town/Village</label>
+                                                    <select
+                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-black text-sm uppercase tracking-widest outline-none focus:ring-2 ring-primary-500 transition-all"
+                                                        value={formData.town}
+                                                        onChange={(e) => setFormData({ ...formData, town: e.target.value })}
+                                                    >
+                                                        <option value="">Select Town/Village</option>
+                                                        <option value="Rampur Village">Rampur Village</option>
+                                                        <option value="Dhanikhera Town">Dhanikhera Town</option>
+                                                        <option value="Bhagwant Nagar">Bhagwant Nagar</option>
+                                                        <option value="Sumerpur Hub">Sumerpur Hub</option>
+                                                        <option value="Bighapur Area">Bighapur Area</option>
+                                                        <option value="Unnao Central">Unnao Central</option>
                                                     </select>
                                                 </div>
                                             </motion.div>
@@ -259,6 +290,22 @@ const Login = () => {
                                                         <option value="Motorcycle">Motorcycle/Scooty</option>
                                                         <option value="Auto">Auto Rickshaw</option>
                                                         <option value="Other">Walking (Hyperlocal)</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Delivery Hub Town</label>
+                                                    <select
+                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-black text-sm uppercase tracking-widest outline-none focus:ring-2 ring-primary-500 transition-all"
+                                                        value={formData.town}
+                                                        onChange={(e) => setFormData({ ...formData, town: e.target.value })}
+                                                    >
+                                                        <option value="">Select Town/Village</option>
+                                                        <option value="Rampur Village">Rampur Village</option>
+                                                        <option value="Dhanikhera Town">Dhanikhera Town</option>
+                                                        <option value="Bhagwant Nagar">Bhagwant Nagar</option>
+                                                        <option value="Sumerpur Hub">Sumerpur Hub</option>
+                                                        <option value="Bighapur Area">Bighapur Area</option>
+                                                        <option value="Unnao Central">Unnao Central</option>
                                                     </select>
                                                 </div>
                                             </motion.div>

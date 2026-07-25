@@ -159,10 +159,42 @@ export const adminService = {
             return { success: false, message: 'Server connection failed' };
         }
     },
-    getPartners: () => new Promise(resolve => setTimeout(() => resolve(DELIVERY_PARTNERS), 500)),
-    getPartnerById: (id) => new Promise(resolve => setTimeout(() => {
-        resolve(DELIVERY_PARTNERS.find(p => p.id === Number(id)));
-    }, 500)),
+    getPartners: async () => {
+        try {
+            const response = await api.get('/partners');
+            return response.data.success ? response.data.data : [];
+        } catch (error) {
+            console.error('Error fetching partners:', error);
+            return [];
+        }
+    },
+    getPartnerById: async (id) => {
+        try {
+            const response = await api.get(`/partners/${id}`);
+            return response.data.success ? response.data.data : null;
+        } catch (error) {
+            console.error('Error fetching partner details:', error);
+            return null;
+        }
+    },
+    updatePartnerStatus: async (id, status) => {
+        try {
+            const response = await api.patch(`/partners/${id}/status`, { status });
+            return response.data;
+        } catch (error) {
+            console.error('Error updating partner status:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
+    deletePartner: async (id) => {
+        try {
+            const response = await api.delete(`/partners/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting partner:', error);
+            return { success: false, message: 'Server connection failed' };
+        }
+    },
     getZones: () => new Promise(resolve => setTimeout(() => resolve(ZONES), 500)),
     getPaymentMethods: async () => {
         try {

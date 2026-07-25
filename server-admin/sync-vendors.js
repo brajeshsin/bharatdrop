@@ -36,7 +36,7 @@ const syncMissingVendors = async () => {
                     category: mappedCategory,
                     phone: userPhone,
                     email: user.email,
-                    town: user.town || 'Rampur',
+                    town: user.town || 'Rampur Village',
                     address: user.address || 'N/A',
                     status: 'Active'
                 });

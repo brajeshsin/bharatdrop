@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
 const UNIT_PRESETS = ['KG', 'LITRE', 'HALF PLATE', 'FULL PLATE', '100GM', '250GM', '500GM', 'PIECE', 'PACKET'];
+const TOWNS = ['Rampur Village', 'Dhanikhera Town', 'Bhagwant Nagar', 'Sumerpur Hub', 'Bighapur Area', 'Unnao Central'];
 
 const VendorDetail = () => {
     const { id } = useParams();
@@ -354,6 +355,23 @@ const VendorDetail = () => {
                                             onChange={handleInputChange}
                                             className="h-14 font-black uppercase text-xs rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-none shadow-inner opacity-60"
                                         />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1"><MapPin size={12} /> Town / Village</label>
+                                        {isEditMode ? (
+                                            <Select
+                                                options={TOWNS}
+                                                value={formData.town}
+                                                onChange={(val) => setFormData({ ...formData, town: val })}
+                                            />
+                                        ) : (
+                                            <Input
+                                                name="town"
+                                                value={vendor?.town}
+                                                readOnly
+                                                className="h-14 font-black uppercase text-xs rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-none shadow-inner"
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             </div>

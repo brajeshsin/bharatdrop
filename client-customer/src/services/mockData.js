@@ -80,7 +80,7 @@ export const PRODUCTS = [
     { id: 803, shopId: 8, name: "Cheesy Paneer Pizza", price: 280, category: "Pizza", image: "https://images.unsplash.com/photo-1566843972142-a7fcb70de55a?auto=format&fit=crop&q=80&w=400" },
 ];
 
-export const CATEGORIES = ["All", "Grocery", "Medicine", "Dairy", "Bakery", "Vegetables", "Meat", "Dhaba", "Fast Food"];
+export const CATEGORIES = ["All", "Grocery", "Medicine", "Dairy", "Bakery", "Vegetables", "Meat", "Dhaba", "Fast Food", "Restaurant", "Pharmacy", "Sweets & Snacks", "Fruits & Veg"];
 
 export const CATEGORIES_WITH_IMAGES = [
     { name: "Grocery", image: "/images/generated/grocery.png", color: "bg-emerald-50 text-emerald-600" },
@@ -88,9 +88,13 @@ export const CATEGORIES_WITH_IMAGES = [
     { name: "Dairy", image: "https://images.unsplash.com/photo-1628088062854-d1870b4553ad?auto=format&fit=crop&q=80&w=400", color: "bg-blue-50 text-blue-600" },
     { name: "Bakery", image: "/images/generated/bakery.png", color: "bg-orange-50 text-orange-600" },
     { name: "Vegetables", image: "/images/generated/vegetables.png", color: "bg-green-50 text-green-600" },
-    { name: "Meat", image: "file:///home/brajesh-react/.gemini/antigravity/brain/e5e24a2c-8512-4f34-b555-73b95e60e68d/meat_category_icon_1774705459260.png", color: "bg-rose-50 text-rose-600" },
-    { name: "Dhaba", image: "file:///home/brajesh-react/.gemini/antigravity/brain/e5e24a2c-8512-4f34-b555-73b95e60e68d/dhaba_category_icon_1774705809425.png", color: "bg-orange-50 text-orange-600" },
-    { name: "Fast Food", image: "file:///home/brajesh-react/.gemini/antigravity/brain/e5e24a2c-8512-4f34-b555-73b95e60e68d/fast_food_category_icon_1774706150035.png", color: "bg-blue-50 text-blue-600" },
+    { name: "Meat", image: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&q=80&w=400", color: "bg-rose-50 text-rose-600" },
+    { name: "Dhaba", image: "https://images.unsplash.com/photo-1585933423032-b5fbd8a3bc44?auto=format&fit=crop&q=80&w=400", color: "bg-orange-50 text-orange-600" },
+    { name: "Fast Food", image: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&q=80&w=400", color: "bg-blue-50 text-blue-600" },
+    { name: "Restaurant", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=400", color: "bg-amber-50 text-amber-600" },
+    { name: "Pharmacy", image: "/images/generated/medicine.png", color: "bg-red-50 text-red-600" },
+    { name: "Sweets & Snacks", image: "https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?auto=format&fit=crop&q=80&w=400", color: "bg-yellow-50 text-yellow-600" },
+    { name: "Fruits & Veg", image: "/images/generated/vegetables.png", color: "bg-green-50 text-green-600" }
 ];
 
 export const BANNERS = [
